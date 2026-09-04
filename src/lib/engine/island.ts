@@ -127,3 +127,20 @@ export const RESOURCE_COLORS: Record<Resource, string> = {
   ore: "#6e6a63",
   gold: "#c9a227",
 };
+
+export const DESERT_COLOR = "#d9c89a";
+
+/** Fill for any terrain hex, including the desert. */
+export function terrainColor(terrain: Resource | "desert"): string {
+  return terrain === "desert" ? DESERT_COLOR : RESOURCE_COLORS[terrain];
+}
+
+export const TERRAIN_LABEL: Record<Resource | "desert", string> = {
+  brick: "Hills",
+  lumber: "Forest",
+  wool: "Pasture",
+  grain: "Fields",
+  ore: "Mountains",
+  gold: "Gold field",
+  desert: "Desert",
+};
