@@ -37,16 +37,26 @@ export async function pushResults(game: Game): Promise<void> {
   await recordResults({
     data: {
       code: game.code,
-      results: game.sheets.map((sheet, index) => ({
-        name: sheet.name,
-        points:
-          game.island === 1 ? totalScore(sheet) : victoryPoints(game, index),
-        longestRoad: roadCount(game, index),
-        won:
-          game.winner !== null
-            ? game.winner === index
-            : (order.find((entry) => entry.index === index)?.value ?? 0) === best,
-      })),
+      // AI opponents play along but never touch player profile stats.
+      results: game.sheets.flatMap((sheet, index) =>
+        sheet.isAI
+          ? []
+          : [
+              {
+                name: sheet.name,
+                points:
+                  game.island === 1
+                    ? totalScore(sheet)
+                    : victoryPoints(game, index),
+                longestRoad: roadCount(game, index),
+                won:
+                  game.winner !== null
+                    ? game.winner === index
+                    : (order.find((entry) => entry.index === index)?.value ??
+                        0) === best,
+              },
+            ],
+      ),
     },
   });
 }

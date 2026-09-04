@@ -1,4 +1,4 @@
-import { SITE_BY_ID, siteLabel } from "@/lib/engine/island";
+import { RESOURCE_LABEL, SITE_BY_ID, siteLabel } from "@/lib/engine/island";
 import type { TurnLogEntry } from "@/lib/engine/types";
 
 interface Props {
@@ -21,6 +21,11 @@ function describeEntry(entry: TurnLogEntry): string {
   return parts.length > 0 ? parts.join(", ") : "Nothing built";
 }
 
+function describeDice(entry: TurnLogEntry): string | null {
+  if (!entry.dice || entry.dice.length === 0) return null;
+  return entry.dice.map((d) => RESOURCE_LABEL[d]).join(", ");
+}
+
 /** Collapsible list of committed turns, newest first. */
 export function TurnLog({ log }: Props) {
   if (log.length === 0) return null;
@@ -32,22 +37,30 @@ export function TurnLog({ log }: Props) {
         Turn log ({log.length})
       </summary>
       <ol className="mt-3 flex flex-col gap-2">
-        {entries.map((entry, i) => (
-          <li
-            key={log.length - i}
-            className="flex items-baseline justify-between gap-3 border-b border-ink/10 pb-2 text-sm last:border-0 last:pb-0"
-          >
-            <span className="text-ink">
-              <span className="font-bold">
-                Turn {entry.round} · {entry.player}
+        {entries.map((entry, i) => {
+          const dice = describeDice(entry);
+          return (
+            <li
+              key={log.length - i}
+              className="flex items-baseline justify-between gap-3 border-b border-ink/10 pb-2 text-sm last:border-0 last:pb-0"
+            >
+              <span className="text-ink">
+                <span className="font-bold">
+                  Turn {entry.round} · {entry.player}
+                </span>
+                {dice && (
+                  <span className="block text-xs text-ink-soft">
+                    Rolled: {dice}
+                  </span>
+                )}
+                <span className="text-ink-soft"> — {describeEntry(entry)}</span>
               </span>
-              <span className="text-ink-soft"> — {describeEntry(entry)}</span>
-            </span>
-            <span className="shrink-0 font-bold text-catan-red">
-              {entry.score === "X" ? "✕" : `${entry.score} pts`}
-            </span>
-          </li>
-        ))}
+              <span className="shrink-0 font-bold text-catan-red">
+                {entry.score === "X" ? "✕" : `${entry.score} pts`}
+              </span>
+            </li>
+          );
+        })}
       </ol>
     </details>
   );

@@ -7,7 +7,15 @@ import { TurnLog } from "@/components/TurnLog";
 import { ScoringTrack } from "@/components/ScoringTrack";
 import { VPTrack } from "@/components/VPTrack";
 import { TURNS_PER_GAME, standings } from "@/lib/engine/engine";
-import { RESOURCE_LABEL, SITE_BY_ID, siteLabel } from "@/lib/engine/island";
+import { planTurn } from "@/lib/engine/ai";
+import {
+  RESOURCE_COLORS,
+  RESOURCE_LABEL,
+  SITE_BY_ID,
+  siteLabel,
+} from "@/lib/engine/island";
+import type { Resource } from "@/lib/engine/types";
+import { secureInt } from "@/lib/diceRandom";
 import { useGame } from "@/lib/useGame";
 import { cn } from "@/lib/cn";
 
@@ -59,6 +67,7 @@ function GameScreen() {
   const [handoff, setHandoff] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("roll");
+  const [aiDice, setAiDice] = useState<Resource[] | null>(null);
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showFlash = (message: string) => {
@@ -84,6 +93,55 @@ function GameScreen() {
     setPhase("roll");
   }, [game?.currentPlayer, game?.round]);
 
+  const isAiTurn =
+    game?.status === "active" &&
+    game.sheets[game.currentPlayer]?.isAI === true;
+
+  // AI turns play themselves: secure dice roll, then its builds are tapped
+  // onto the map one by one so you can follow along.
+  useEffect(() => {
+    if (!isAiTurn || !game) return;
+    let cancelled = false;
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => setTimeout(resolve, ms));
+    const plan = planTurn(game, () => secureInt(6));
+
+    const run = async () => {
+      await wait(900);
+      if (cancelled) return;
+      setAiDice(plan.dice);
+      await wait(1500);
+      if (cancelled) return;
+      setPhase("build");
+      for (const idx of plan.draft.roads) {
+        toggleRoad(idx);
+        await wait(450);
+        if (cancelled) return;
+      }
+      for (const siteId of plan.draft.sites) {
+        toggleSite(siteId);
+        await wait(500);
+        if (cancelled) return;
+      }
+      for (const siteId of plan.draft.jokers) {
+        toggleJoker(siteId);
+        await wait(350);
+        if (cancelled) return;
+      }
+      setPhase("score");
+      await wait(900);
+      if (cancelled) return;
+      endTurn(plan.dice);
+      setAiDice(null);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+    // toggleRoad/toggleSite/toggleJoker/endTurn are stable controller callbacks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAiTurn, game?.currentPlayer, game?.round]);
+
   if (notFound) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 px-5">
@@ -103,13 +161,14 @@ function GameScreen() {
 
   const doEndTurn = () => {
     setConfirmingX(false);
-    if (game.sheets.length > 1) {
+    if (game.sheets.length > 1 && !nextPlayer.isAI) {
       setHandoff(nextPlayer.name);
     }
     endTurn();
   };
 
   const handleEndTurn = () => {
+    if (isAiTurn) return;
     if (draftPoints === 0) setConfirmingX(true);
     else doEndTurn();
   };
@@ -123,6 +182,7 @@ function GameScreen() {
   };
 
   const handleRoad = (idx: number) => {
+    if (isAiTurn) return;
     const undoing = game.draft.roads.includes(idx);
     toggleRoad(idx);
     if (phase === "roll") setPhase("build");
@@ -130,6 +190,7 @@ function GameScreen() {
   };
 
   const handleSite = (siteId: string) => {
+    if (isAiTurn) return;
     const site = SITE_BY_ID.get(siteId);
     if (!site) return;
     const undoing = game.draft.sites.includes(siteId);
@@ -143,6 +204,7 @@ function GameScreen() {
   };
 
   const handleJoker = (siteId: string) => {
+    if (isAiTurn) return;
     const site = SITE_BY_ID.get(siteId);
     if (!site) return;
     const undoing = game.draft.jokers.includes(siteId);
@@ -188,7 +250,13 @@ function GameScreen() {
             {game.island === 1 ? "Island One" : "Island Two"}
           </p>
           <h1 className="truncate font-display text-2xl font-black text-ink">
-            {sheet.name}'s turn
+            {sheet.name}
+            {sheet.isAI && (
+              <span className="ml-2 rounded-full bg-ore/20 px-2 py-0.5 align-middle text-[10px] font-black tracking-wider text-ink-soft uppercase">
+                AI
+              </span>
+            )}
+            &rsquo;s turn
           </h1>
           <p className="text-sm font-bold text-catan-red">
             {game.island === 1
@@ -259,9 +327,36 @@ function GameScreen() {
           })}
         </div>
         <p className="mt-1.5 px-1 text-center text-xs font-semibold text-ink-soft">
-          {PHASES.find((p) => p.id === phase)?.hint}
+          {isAiTurn
+            ? aiDice
+              ? `${sheet.name} rolled — building now`
+              : `${sheet.name} is rolling the dice…`
+            : PHASES.find((p) => p.id === phase)?.hint}
         </p>
       </div>
+
+      {/* AI dice */}
+      {isAiTurn && (
+        <div
+          aria-live="polite"
+          aria-label="AI dice roll"
+          className="mb-3 flex min-h-12 flex-wrap items-center justify-center gap-1.5 rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 px-3 py-2"
+        >
+          {aiDice ? (
+            aiDice.map((die, i) => (
+              <span
+                key={i}
+                style={{ backgroundColor: RESOURCE_COLORS[die] }}
+                className="rounded-lg px-2 py-1 text-[11px] font-black text-parchment shadow-sm"
+              >
+                {RESOURCE_LABEL[die]}
+              </span>
+            ))
+          ) : (
+            <span className="text-xs font-bold text-ink-soft">Rolling…</span>
+          )}
+        </div>
+      )}
 
       {/* island map */}
       <div className="rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 p-2 shadow-sm">
@@ -342,16 +437,23 @@ function GameScreen() {
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-ink-soft">
-                This turn{draftItems.length > 0 ? " · tap an item to undo" : ""}
+                {isAiTurn
+                  ? "AI opponent"
+                  : `This turn${draftItems.length > 0 ? " · tap an item to undo" : ""}`}
               </p>
               <p className="font-display text-xl font-black text-ink">
-                {draftPoints > 0 ? `+${draftPoints} pts` : "Nothing built"}
+                {isAiTurn
+                  ? `${sheet.name} is playing…`
+                  : draftPoints > 0
+                    ? `+${draftPoints} pts`
+                    : "Nothing built"}
               </p>
             </div>
             <button
               type="button"
               onClick={handleEndTurn}
-              className="shrink-0 rounded-2xl bg-forest px-8 py-4 font-display text-lg font-bold text-parchment shadow-lg transition-transform active:scale-[0.97]"
+              disabled={isAiTurn}
+              className="shrink-0 rounded-2xl bg-forest px-8 py-4 font-display text-lg font-bold text-parchment shadow-lg transition-transform active:scale-[0.97] disabled:opacity-40"
             >
               End turn
             </button>

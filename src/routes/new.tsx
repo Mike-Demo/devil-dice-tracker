@@ -33,6 +33,7 @@ function NewGame() {
   const router = useRouter();
   const [island, setIsland] = useState<Island>(1);
   const [names, setNames] = useState<string[]>(["Player 1"]);
+  const [aiFlags, setAiFlags] = useState<boolean[]>([false]);
   const [rosterCode, setRoster] = useState<string | null>(null);
   const [rosterNames, setRosterNames] = useState<string[]>([]);
 
@@ -46,28 +47,54 @@ function NewGame() {
   }, []);
 
   const addPlayer = () => {
-    if (names.length < 4) setNames([...names, `Player ${names.length + 1}`]);
+    if (names.length < 4) {
+      setNames([...names, `Player ${names.length + 1}`]);
+      setAiFlags([...aiFlags, false]);
+    }
+  };
+  const addAi = () => {
+    if (names.length >= 4) return;
+    // Always add — never replace the human's own slot, or the game would
+    // have no one holding the device.
+    const n = aiFlags.filter(Boolean).length + 1;
+    setNames([...names, n > 1 ? `Catan Bot ${n}` : "Catan Bot"]);
+    setAiFlags([...aiFlags, true]);
   };
   const removePlayer = (idx: number) => {
-    if (names.length > 1) setNames(names.filter((_, i) => i !== idx));
+    if (names.length > 1) {
+      setNames(names.filter((_, i) => i !== idx));
+      setAiFlags(aiFlags.filter((_, i) => i !== idx));
+    }
   };
   const rename = (idx: number, value: string) => {
     setNames(names.map((n, i) => (i === idx ? value : n)));
   };
   const addFromRoster = (name: string) => {
     if (names.includes(name) || names.length >= 4) return;
-    const blank = names.findIndex((n) => /^Player \d+$/.test(n.trim()));
+    const blank = names.findIndex(
+      (n, i) => !aiFlags[i] && /^Player \d+$/.test(n.trim()),
+    );
     if (blank >= 0) rename(blank, name);
-    else setNames([...names, name]);
+    else {
+      setNames([...names, name]);
+      setAiFlags([...aiFlags, false]);
+    }
   };
 
   const start = () => {
-    const cleaned = names.map((n, i) => n.trim() || `Player ${i + 1}`);
-    const game = newGame(island, cleaned);
+    if (aiFlags.every(Boolean)) return; // a game needs at least one human
+    const cleaned = names.map((n, i) =>
+      aiFlags[i]
+        ? n.trim() || "Catan Bot"
+        : n.trim() || `Player ${i + 1}`,
+    );
+    const game = newGame(island, cleaned, aiFlags);
     if (rosterCode) game.rosterCode = rosterCode;
     saveGame(game);
     router.navigate({ to: "/game/$id", params: { id: game.id } });
   };
+
+  const noHuman = aiFlags.every(Boolean);
 
 
   return (
@@ -135,15 +162,22 @@ function NewGame() {
         <div className="flex flex-col gap-2">
           {names.map((name, idx) => (
             <div key={idx} className="flex gap-2">
-              <WaInput
-                value={name}
-                onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  rename(idx, e.target.value)
-                }
-                aria-label={`Player ${idx + 1} name`}
-                maxlength={20}
-                className="min-w-0 flex-1"
-              />
+              <div className="relative min-w-0 flex-1">
+                <WaInput
+                  value={name}
+                  onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    rename(idx, e.target.value)
+                  }
+                  aria-label={`Player ${idx + 1} name`}
+                  maxlength={20}
+                  className="w-full"
+                />
+                {aiFlags[idx] && (
+                  <span className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full bg-ore/20 px-2 py-0.5 text-[10px] font-black tracking-wider text-ink-soft uppercase">
+                    AI
+                  </span>
+                )}
+              </div>
               {names.length > 1 && (
                 <button
                   type="button"
@@ -158,22 +192,37 @@ function NewGame() {
           ))}
         </div>
         {names.length < 4 && (
-          <button
-            type="button"
-            onClick={addPlayer}
-            className="mt-2 w-full rounded-xl border-2 border-dashed border-ink/25 py-3 text-sm font-bold text-ink-soft active:bg-ink/5"
-          >
-            + Add player
-          </button>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={addPlayer}
+              className="rounded-xl border-2 border-dashed border-ink/25 py-3 text-sm font-bold text-ink-soft active:bg-ink/5"
+            >
+              + Add player
+            </button>
+            <button
+              type="button"
+              onClick={addAi}
+              className="rounded-xl border-2 border-dashed border-catan-red/40 py-3 text-sm font-bold text-catan-red active:bg-catan-red/5"
+            >
+              + Add AI opponent
+            </button>
+          </div>
         )}
       </section>
 
+      {noHuman && (
+        <p className="mt-auto mb-2 text-center text-xs font-bold text-catan-red">
+          Add at least one human player.
+        </p>
+      )}
       <WaButton
         variant="brand"
         size="large"
         pill
+        disabled={noHuman}
         onClick={start}
-        className="mt-auto w-full"
+        className={noHuman ? "w-full" : "mt-auto w-full"}
       >
         Start game
       </WaButton>
