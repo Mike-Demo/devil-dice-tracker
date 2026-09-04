@@ -11,17 +11,27 @@ export function MapLegend({ island }: Props) {
   const items: LegendItem[] = [
     {
       swatch: (
+        <svg viewBox="0 0 20 18" className="block h-4 w-4 text-wool" aria-hidden="true">
+          <polygon points="5,0 15,0 20,9 15,18 5,18 0,9" fill="currentColor" fillOpacity={0.6} />
+        </svg>
+      ),
+      text: "Hex tiles show terrain & dice numbers",
+    },
+
+    {
+      swatch: (
         <span className="block h-4 w-4 rounded border-2 border-dashed border-catan-red bg-parchment" />
       ),
       text: "Dashed = available to build now",
     },
+
     {
       swatch: <span className="block h-4 w-4 rounded bg-forest-deep" />,
       text: "Solid green = already built",
     },
     {
       swatch: (
-        <span className="block h-4 w-4 rounded border-2 border-[#c9a227] bg-forest-deep" />
+        <span className="block h-4 w-4 rounded border-2 border-gold bg-forest-deep" />
       ),
       text: "Gold ring = knight joker ready",
     },

@@ -25,6 +25,46 @@ export const ROAD_COUNT = NODES.length - 1;
 /** Road segment index that is the gray "Longest Road" site on Island Two. */
 export const LONGEST_ROAD_INDEX = 7;
 
+/** A terrain hex sitting inside the official grid, purely decorative. */
+export interface Hex {
+  x: number;
+  y: number;
+  terrain: Resource | "desert";
+  /** Dice number token; null on the desert. */
+  number: number | null;
+}
+
+/** Flat-top hex radius (centre to corner) used by the map. */
+export const HEX_RADIUS = 44;
+
+/**
+ * Terrain hexes filling the three bands of the official sheet layout.
+ * The road/building positions above are unchanged — these sit behind them.
+ */
+export const HEXES: ReadonlyArray<Hex> = [
+  { x: 90, y: 110, terrain: "lumber", number: 8 },
+  { x: 170, y: 110, terrain: "wool", number: 5 },
+  { x: 250, y: 110, terrain: "grain", number: 10 },
+  { x: 90, y: 190, terrain: "brick", number: 6 },
+  { x: 170, y: 190, terrain: "desert", number: null },
+  { x: 250, y: 190, terrain: "ore", number: 9 },
+  { x: 90, y: 270, terrain: "grain", number: 4 },
+  { x: 170, y: 270, terrain: "lumber", number: 11 },
+  { x: 250, y: 270, terrain: "wool", number: 3 },
+];
+
+/** Points string for a flat-top hexagon centred on (cx, cy). */
+export function hexPoints(cx: number, cy: number, r = HEX_RADIUS): string {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 180) * (60 * i);
+    return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a) * 0.87).toFixed(2)}`;
+  }).join(" ");
+}
+
+/** Red high-probability numbers get emphasised like the printed sheet. */
+export const isHotNumber = (n: number): boolean => n === 6 || n === 8;
+
+
 const KNIGHT_RESOURCES: Array<Resource | "wild"> = [
   "ore",
   "wool",
@@ -86,4 +126,21 @@ export const RESOURCE_COLORS: Record<Resource, string> = {
   grain: "#d9b23c",
   ore: "#6e6a63",
   gold: "#c9a227",
+};
+
+export const DESERT_COLOR = "var(--color-desert)";
+
+/** Fill for any terrain hex, including the desert. */
+export function terrainColor(terrain: Resource | "desert"): string {
+  return terrain === "desert" ? DESERT_COLOR : RESOURCE_COLORS[terrain];
+}
+
+export const TERRAIN_LABEL: Record<Resource | "desert", string> = {
+  brick: "Hills",
+  lumber: "Forest",
+  wool: "Pasture",
+  grain: "Fields",
+  ore: "Mountains",
+  gold: "Gold field",
+  desert: "Desert",
 };
