@@ -1,6 +1,6 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { WaButton, WaDialog } from "@/design-system/font-awsome-web-awesome-171158";
+
 import { IslandMap } from "@/components/IslandMap";
 import { MapLegend } from "@/components/MapLegend";
 import { ScoringTrack } from "@/components/ScoringTrack";
@@ -309,15 +309,13 @@ function GameScreen() {
                 {draftPoints > 0 ? `+${draftPoints} pts` : "Nothing built"}
               </p>
             </div>
-            <WaButton
-              variant="brand"
-              size="large"
-              pill
+            <button
+              type="button"
               onClick={handleEndTurn}
-              className="shrink-0"
+              className="shrink-0 rounded-2xl bg-forest px-8 py-4 font-display text-lg font-bold text-parchment shadow-lg transition-transform active:scale-[0.97]"
             >
               End turn
-            </WaButton>
+            </button>
           </div>
         </div>
       </div>
