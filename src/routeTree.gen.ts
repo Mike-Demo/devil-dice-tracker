@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlayersRouteImport } from './routes/players'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GameIdRouteImport } from './routes/game.$id'
+import { Route as GCodeRouteImport } from './routes/g.$code'
 import { Route as GameIdResultsRouteImport } from './routes/game.$id.results'
 import { Route as Char91__mockupChar93PreviewSplatRouteImport } from './routes/[__mockup].preview.$'
 import { Route as Char91__componentChar93PreviewSplatRouteImport } from './routes/[__component].preview.$'
 
+const PlayersRoute = PlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewRoute = NewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -29,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const GameIdRoute = GameIdRouteImport.update({
   id: '/game/$id',
   path: '/game/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GCodeRoute = GCodeRouteImport.update({
+  id: '/g/$code',
+  path: '/g/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GameIdResultsRoute = GameIdResultsRouteImport.update({
@@ -52,6 +64,8 @@ const Char91__componentChar93PreviewSplatRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/players': typeof PlayersRoute
+  '/g/$code': typeof GCodeRoute
   '/game/$id': typeof GameIdRouteWithChildren
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -60,6 +74,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/players': typeof PlayersRoute
+  '/g/$code': typeof GCodeRoute
   '/game/$id': typeof GameIdRouteWithChildren
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -69,6 +85,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/new': typeof NewRoute
+  '/players': typeof PlayersRoute
+  '/g/$code': typeof GCodeRoute
   '/game/$id': typeof GameIdRouteWithChildren
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
@@ -79,6 +97,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/new'
+    | '/players'
+    | '/g/$code'
     | '/game/$id'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -87,6 +107,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/new'
+    | '/players'
+    | '/g/$code'
     | '/game/$id'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -95,6 +117,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/new'
+    | '/players'
+    | '/g/$code'
     | '/game/$id'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
@@ -104,6 +128,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NewRoute: typeof NewRoute
+  PlayersRoute: typeof PlayersRoute
+  GCodeRoute: typeof GCodeRoute
   GameIdRoute: typeof GameIdRouteWithChildren
   Char91__componentChar93PreviewSplatRoute: typeof Char91__componentChar93PreviewSplatRoute
   Char91__mockupChar93PreviewSplatRoute: typeof Char91__mockupChar93PreviewSplatRoute
@@ -111,6 +137,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/players': {
+      id: '/players'
+      path: '/players'
+      fullPath: '/players'
+      preLoaderRoute: typeof PlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/new': {
       id: '/new'
       path: '/new'
@@ -130,6 +163,13 @@ declare module '@tanstack/react-router' {
       path: '/game/$id'
       fullPath: '/game/$id'
       preLoaderRoute: typeof GameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/g/$code': {
+      id: '/g/$code'
+      path: '/g/$code'
+      fullPath: '/g/$code'
+      preLoaderRoute: typeof GCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/game/$id/results': {
@@ -170,6 +210,8 @@ const GameIdRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NewRoute: NewRoute,
+  PlayersRoute: PlayersRoute,
+  GCodeRoute: GCodeRoute,
   GameIdRoute: GameIdRouteWithChildren,
   Char91__componentChar93PreviewSplatRoute:
     Char91__componentChar93PreviewSplatRoute,

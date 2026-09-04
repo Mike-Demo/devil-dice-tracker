@@ -1,9 +1,11 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listGames, deleteGame } from "@/lib/storage";
+import { normalizeCode } from "@/lib/roster";
 import type { Game } from "@/lib/engine/types";
 import { WaButton, WaAvatar } from "@/design-system/font-awsome-web-awesome-171158";
 import sheepIcon from "@/assets/sheep.png";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,6 +32,8 @@ export const Route = createFileRoute("/")({
 function Home() {
   const router = useRouter();
   const [games, setGames] = useState<Game[]>([]);
+  const [code, setCode] = useState("");
+
 
   useEffect(() => {
     setGames(listGames());
@@ -60,10 +64,45 @@ function Home() {
         variant="brand"
         size="large"
         pill
-        className="mb-8 w-full"
+        className="mb-4 w-full"
       >
         Start a new game
       </WaButton>
+
+      <section aria-label="Open a game by code" className="mb-4">
+        <div className="flex gap-2">
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Game code"
+            aria-label="Game code"
+            maxLength={7}
+            className="min-w-0 flex-1 rounded-xl border-2 border-ink/15 bg-parchment-deep/60 px-3 py-3 font-display text-base tracking-widest text-ink uppercase"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const clean = normalizeCode(code);
+              if (clean.length === 6)
+                router.navigate({ to: "/g/$code", params: { code: clean } });
+            }}
+            className="shrink-0 rounded-xl border-2 border-ink/20 px-4 font-bold text-ink"
+          >
+            Open
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-ink-soft">
+          Reopen a game from any device with its code.
+        </p>
+      </section>
+
+      <Link
+        to="/players"
+        className="mb-8 block rounded-xl border-2 border-ink/15 px-4 py-3 text-center font-bold text-ink"
+      >
+        Player stats
+      </Link>
+
 
       {games.length > 0 && (
         <section aria-label="Saved games">

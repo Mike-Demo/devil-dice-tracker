@@ -58,4 +58,9 @@ export interface Game {
   winner: number | null;
   createdAt: number;
   updatedAt: number;
+  /** Shareable cloud code, once the game has synced at least once. */
+  code?: string;
+  /** Roster this game's players came from, if any. */
+  rosterCode?: string;
 }
+
