@@ -22,6 +22,13 @@
   --font-body: "Nunito Sans", system-ui, sans-serif;
 }
 
+:root {
+  /* Bind Web Awesome brand tokens to the Catan palette */
+  --wa-color-brand-fill-loud: var(--color-catan-red);
+  --wa-color-brand-on-loud: var(--color-parchment);
+  --wa-color-brand-border-loud: var(--color-catan-red-deep);
+}
+
 html {
   background-color: var(--color-parchment);
 }
@@ -37,21 +44,17 @@ body {
   font-family: var(--font-display);
 }
 
-/* Web Awesome brand CTA in Catan red (styled through the button's base part) */
-.cta-red::part(base) {
-  background-color: var(--color-catan-red);
-  border-color: var(--color-catan-red-deep);
-  color: var(--color-parchment);
-  font-family: var(--font-display, "Fraunces", serif);
-  font-weight: 700;
-  font-size: var(--text-xl, 1.25rem);
-}
-.cta-red::part(base):hover {
-  background-color: var(--color-catan-red-deep);
-}
-
 /* WA native styles clamp plain <button> height; our Tailwind buttons size themselves */
 button:not(wa-button) {
   height: auto;
   min-height: 0;
+}
+
+/* Home header sheep — wa-avatar scales from font-size via Web Awesome tokens */
+.home-header {
+  margin-block-end: var(--wa-space-xl);
+}
+.sheep-avatar {
+  font-size: var(--wa-font-size-4xl);
+  margin-block-end: var(--wa-space-m);
 }

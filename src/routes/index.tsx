@@ -2,7 +2,8 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listGames, deleteGame } from "@/lib/storage";
 import type { Game } from "@/lib/engine/types";
-import { WaButton } from "@/design-system/font-awsome-web-awesome-171158";
+import { WaButton, WaAvatar } from "@/design-system/font-awsome-web-awesome-171158";
+import sheepIcon from "@/assets/sheep.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,7 +37,12 @@ function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
-      <header className="mb-8 text-center">
+      <header className="home-header flex flex-col items-center text-center">
+        <WaAvatar
+          image={sheepIcon}
+          label="Sheep mascot"
+          className="sheep-avatar"
+        />
         <p className="mb-1 text-xs font-bold tracking-[0.3em] text-catan-red uppercase">
           Roll · Play · Settle
         </p>
@@ -54,7 +60,7 @@ function Home() {
         variant="brand"
         size="large"
         pill
-        className="cta-red mb-8 w-full"
+        className="mb-8 w-full"
       >
         Start a new game
       </WaButton>
@@ -93,17 +99,18 @@ function Home() {
                       : `Round ${g.round}, ${g.sheets[g.currentPlayer].name}'s turn`}
                   </p>
                 </button>
-                <button
-                  type="button"
-                  aria-label={`Delete game ${g.sheets.map((s) => s.name).join(" vs ")}`}
+                <WaButton
+                  size="small"
+                  variant="neutral"
+                  appearance="outlined"
                   onClick={() => {
                     deleteGame(g.id);
                     setGames(listGames());
                   }}
-                  className="shrink-0 rounded-lg border border-ink/20 px-3 py-2 text-xs font-bold text-ink-soft active:bg-ink/10"
+                  aria-label={`Delete game ${g.sheets.map((s) => s.name).join(" vs ")}`}
                 >
                   Delete
-                </button>
+                </WaButton>
               </li>
             ))}
           </ul>
