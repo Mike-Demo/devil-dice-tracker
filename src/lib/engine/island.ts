@@ -1,31 +1,22 @@
 import type { Resource, Site } from "./types";
 
-/** Serpentine path of road nodes across the island (x, y in a 340x480 viewBox). */
-export const NODES: ReadonlyArray<readonly [number, number]> = [
-  [50, 70],
-  [130, 70],
-  [210, 70],
-  [290, 70],
-  [290, 150],
-  [210, 150],
-  [130, 150],
-  [50, 150],
-  [50, 230],
-  [130, 230],
-  [210, 230],
-  [290, 230],
-  [290, 310],
-  [210, 310],
-  [130, 310],
-  [50, 310],
+/** Flat-top hex radius (centre to corner) used by the map. */
+export const HEX_RADIUS = 42;
+
+/** Half-width / half-height steps of the hex vertex grid. */
+const U = HEX_RADIUS / 2;
+const V = HEX_RADIUS * Math.sin(Math.PI / 3);
+
+/** Centre of the island inside the map viewBox. */
+export const ISLAND_CENTER: readonly [number, number] = [170, 190];
+
+/** Convert a hex-grid coordinate (in U / V steps) to viewBox pixels. */
+const px = (a: number, b: number): [number, number] => [
+  Number((ISLAND_CENTER[0] + a * U).toFixed(2)),
+  Number((ISLAND_CENTER[1] + b * V).toFixed(2)),
 ];
 
-export const ROAD_COUNT = NODES.length - 1;
-
-/** Road segment index that is the gray "Longest Road" site on Island Two. */
-export const LONGEST_ROAD_INDEX = 7;
-
-/** A terrain hex sitting inside the official grid, purely decorative. */
+/** A terrain hex of the printed island. */
 export interface Hex {
   x: number;
   y: number;
@@ -34,66 +25,109 @@ export interface Hex {
   number: number | null;
 }
 
-/** Flat-top hex radius (centre to corner) used by the map. */
-export const HEX_RADIUS = 44;
-
 /**
- * Terrain hexes filling the three bands of the official sheet layout.
- * The road/building positions above are unchanged — these sit behind them.
+ * The six terrain hexes of the printed sheet: a ring around the open water,
+ * mountains / desert / hills on top, fields / pasture / forest below.
  */
 export const HEXES: ReadonlyArray<Hex> = [
-  { x: 90, y: 110, terrain: "lumber", number: 8 },
-  { x: 170, y: 110, terrain: "wool", number: 5 },
-  { x: 250, y: 110, terrain: "grain", number: 10 },
-  { x: 90, y: 190, terrain: "brick", number: 6 },
-  { x: 170, y: 190, terrain: "desert", number: null },
-  { x: 250, y: 190, terrain: "ore", number: 9 },
-  { x: 90, y: 270, terrain: "grain", number: 4 },
-  { x: 170, y: 270, terrain: "lumber", number: 11 },
-  { x: 250, y: 270, terrain: "wool", number: 3 },
+  { ...pos(-3, -1), terrain: "ore", number: 1 },
+  { ...pos(0, -2), terrain: "desert", number: null },
+  { ...pos(3, -1), terrain: "brick", number: 5 },
+  { ...pos(3, 1), terrain: "lumber", number: 4 },
+  { ...pos(0, 2), terrain: "wool", number: 3 },
+  { ...pos(-3, 1), terrain: "grain", number: 2 },
 ];
+
+function pos(a: number, b: number): { x: number; y: number } {
+  const [x, y] = px(a, b);
+  return { x, y };
+}
+
+/**
+ * Road nodes: hex corners walked around the island edge, exactly like the
+ * printed road track. Consecutive nodes always share a hex edge.
+ */
+const NODE_GRID: ReadonlyArray<readonly [number, number]> = [
+  [-2, -2],
+  [-1, -3],
+  [1, -3],
+  [2, -2],
+  [4, -2],
+  [5, -1],
+  [4, 0],
+  [5, 1],
+  [4, 2],
+  [2, 2],
+  [1, 3],
+  [-1, 3],
+  [-2, 2],
+  [-4, 2],
+  [-5, 1],
+  [-4, 0],
+];
+
+export const NODES: ReadonlyArray<readonly [number, number]> = NODE_GRID.map(
+  ([a, b]) => px(a, b),
+);
+
+export const ROAD_COUNT = NODES.length - 1;
+
+/** Road segment index that is the gray "Longest Road" site on Island Two. */
+export const LONGEST_ROAD_INDEX = 7;
 
 /** Points string for a flat-top hexagon centred on (cx, cy). */
 export function hexPoints(cx: number, cy: number, r = HEX_RADIUS): string {
   return Array.from({ length: 6 }, (_, i) => {
     const a = (Math.PI / 180) * (60 * i);
-    return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a) * 0.87).toFixed(2)}`;
+    return `${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`;
   }).join(" ");
 }
 
 /** Red high-probability numbers get emphasised like the printed sheet. */
 export const isHotNumber = (n: number): boolean => n === 6 || n === 8;
 
+/** Push a build token outwards from the island centre so roads stay visible. */
+function outward(node: number, distance: number): { x: number; y: number } {
+  const [x, y] = NODES[node];
+  const dx = x - ISLAND_CENTER[0];
+  const dy = y - ISLAND_CENTER[1];
+  const len = Math.hypot(dx, dy) || 1;
+  return {
+    x: Number((x + (dx / len) * distance).toFixed(2)),
+    y: Number((y + (dy / len) * distance).toFixed(2)),
+  };
+}
 
-const KNIGHT_RESOURCES: Array<Resource | "wild"> = [
-  "ore",
-  "wool",
-  "grain",
-  "brick",
-  "lumber",
-  "wild",
+/** Knight order on the sheet: one pawn per terrain hex. */
+const KNIGHT_HEX: ReadonlyArray<{ resource: Resource | "wild"; hex: number }> = [
+  { resource: "ore", hex: 0 },
+  { resource: "wool", hex: 4 },
+  { resource: "grain", hex: 5 },
+  { resource: "brick", hex: 2 },
+  { resource: "lumber", hex: 3 },
+  { resource: "wild", hex: 1 },
 ];
 
 export const SITES: Site[] = [
   // Settlements — ascending point values 3, 4, 5, 6
-  { id: "s1", kind: "settlement", points: 3, order: 1, node: 2, resource: null, x: 210, y: 28 },
-  { id: "s2", kind: "settlement", points: 4, order: 2, node: 6, resource: null, x: 130, y: 192 },
-  { id: "s3", kind: "settlement", points: 5, order: 3, node: 9, resource: null, x: 130, y: 272 },
-  { id: "s4", kind: "settlement", points: 6, order: 4, node: 13, resource: null, x: 210, y: 352 },
+  { id: "s1", kind: "settlement", points: 3, order: 1, node: 2, resource: null, ...outward(2, 18) },
+  { id: "s2", kind: "settlement", points: 4, order: 2, node: 6, resource: null, ...outward(6, 18) },
+  { id: "s3", kind: "settlement", points: 5, order: 3, node: 9, resource: null, ...outward(9, 18) },
+  { id: "s4", kind: "settlement", points: 6, order: 4, node: 13, resource: null, ...outward(13, 18) },
   // Cities — ascending point values 7, 10, 12
-  { id: "c1", kind: "city", points: 7, order: 1, node: 4, resource: null, x: 318, y: 110 },
-  { id: "c2", kind: "city", points: 10, order: 2, node: 8, resource: null, x: 22, y: 190 },
-  { id: "c3", kind: "city", points: 12, order: 3, node: 12, resource: null, x: 318, y: 270 },
-  // Knights — ascending 1..6 on Island One, each grants a resource joker
-  ...KNIGHT_RESOURCES.map((resource, i) => ({
+  { id: "c1", kind: "city", points: 7, order: 1, node: 4, resource: null, ...outward(4, 20) },
+  { id: "c2", kind: "city", points: 10, order: 2, node: 8, resource: null, ...outward(8, 20) },
+  { id: "c3", kind: "city", points: 12, order: 3, node: 12, resource: null, ...outward(12, 20) },
+  // Knights — one per hex, each grants a resource joker
+  ...KNIGHT_HEX.map(({ resource, hex }, i) => ({
     id: `k${i + 1}`,
     kind: "knight" as const,
     points: 1,
     order: i + 1,
     node: null,
     resource,
-    x: 45 + i * 54,
-    y: 500,
+    x: HEXES[hex].x,
+    y: HEXES[hex].y,
   })),
 ];
 
@@ -120,12 +154,12 @@ export const RESOURCE_LABEL: Record<Resource | "wild", string> = {
 };
 
 export const RESOURCE_COLORS: Record<Resource, string> = {
-  brick: "#b3402a",
-  lumber: "#4a6b3a",
-  wool: "#9fb87a",
-  grain: "#d9b23c",
-  ore: "#6e6a63",
-  gold: "#c9a227",
+  brick: "var(--color-brick)",
+  lumber: "var(--color-lumber)",
+  wool: "var(--color-wool)",
+  grain: "var(--color-grain)",
+  ore: "var(--color-ore)",
+  gold: "var(--color-gold)",
 };
 
 export const DESERT_COLOR = "var(--color-desert)";
