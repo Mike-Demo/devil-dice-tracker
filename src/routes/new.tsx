@@ -236,21 +236,24 @@ function NewGame() {
         )}
       </section>
 
-      {noHuman && (
-        <p className="mt-auto mb-2 text-center text-xs font-bold text-catan-red">
-          Add at least one human player.
-        </p>
-      )}
-      <WaButton
-        variant="brand"
-        size="large"
-        pill
-        disabled={noHuman}
-        onClick={start}
-        className={noHuman ? "w-full" : "mt-auto w-full"}
-      >
-        Start game
-      </WaButton>
+      <div className="mt-auto flex flex-col gap-2">
+        <CaptchaGate onState={setCaptcha} />
+        {noHuman && (
+          <p className="text-center text-xs font-bold text-catan-red">
+            Add at least one human player.
+          </p>
+        )}
+        <WaButton
+          variant="brand"
+          size="large"
+          pill
+          disabled={startDisabled}
+          onClick={() => void start()}
+          className="w-full"
+        >
+          {starting ? "Checking…" : "Start game"}
+        </WaButton>
+      </div>
     </main>
   );
 }
