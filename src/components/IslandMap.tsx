@@ -2,9 +2,11 @@ import {
   LONGEST_ROAD_INDEX,
   NODES,
   RESOURCE_COLORS,
+  RESOURCE_LABEL,
   ROAD_COUNT,
   SITES,
   SITE_BY_ID,
+  siteLabel,
 } from "@/lib/engine/island";
 import {
   canBuildRoad,
@@ -12,7 +14,7 @@ import {
   canUseJoker,
   effectiveRoads,
 } from "@/lib/engine/engine";
-import type { Game, PlayerState, TurnDraft } from "@/lib/engine/types";
+import type { Game, PlayerState, Site, TurnDraft } from "@/lib/engine/types";
 import { cn } from "@/lib/cn";
 
 interface Props {
@@ -22,15 +24,13 @@ interface Props {
   onToggleJoker: (siteId: string) => void;
 }
 
-const RESOURCE_LABEL: Record<string, string> = {
-  brick: "Brick",
-  lumber: "Lumber",
-  wool: "Wool",
-  grain: "Grain",
-  ore: "Ore",
-  gold: "Gold",
-  wild: "Any resource",
-};
+const clampX = (x: number): number => Math.min(302, Math.max(38, x));
+
+function valueCaption(site: Site, island: Game["island"]): string {
+  if (site.kind === "knight") return RESOURCE_LABEL[site.resource ?? "wild"];
+  if (island === 2) return site.kind === "city" ? "2 VP" : "1 VP";
+  return `${site.points} pts`;
+}
 
 export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: Props) {
   const sheet: PlayerState = game.sheets[game.currentPlayer];
@@ -41,7 +41,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
 
   return (
     <svg
-      viewBox="0 0 340 480"
+      viewBox="0 0 340 560"
       className="h-auto w-full select-none"
       role="img"
       aria-label="Island game map"
@@ -54,7 +54,15 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
       </defs>
 
       {/* island backdrop */}
-      <rect x="4" y="4" width="332" height="472" rx="18" fill="#eadfc6" stroke="#cbbd9c" strokeWidth="2" />
+      <rect x="4" y="4" width="332" height="384" rx="18" fill="#eadfc6" stroke="#cbbd9c" strokeWidth="2" />
+
+      {/* zone header: roads & buildings */}
+      <text x="18" y="21" fontSize={10} fontWeight="800" letterSpacing="1.4" fill="#8f7f63">
+        ROADS &amp; BUILDINGS
+      </text>
+      <text x="18" y="378" fontSize={9} fill="#8f7f63">
+        Roads build in order (1 pt each) and unlock the buildings next to them.
+      </text>
 
       {/* roads */}
       {Array.from({ length: ROAD_COUNT }, (_, i) => {
@@ -67,9 +75,6 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
         const isStart = i === 0;
         return (
           <g key={`r${i}`}>
-            {(available || isDraft) && (
-              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="transparent" strokeWidth="28" />
-            )}
             <line
               x1={x1}
               y1={y1}
@@ -100,7 +105,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
                   : isBuilt
                     ? `Road ${i} — built`
                     : available
-                      ? `Build road ${i}`
+                      ? `Build road ${i} — 1 pt`
                       : `Road ${i} — build earlier roads first`}
               </title>
             </line>
@@ -115,6 +120,19 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
               onClick={() => onToggleRoad(i)}
               className={available || isDraft ? "cursor-pointer" : undefined}
             />
+            {(available || isDraft) && (
+              <text
+                x={(x1 + x2) / 2}
+                y={(y1 + y2) / 2 - 12}
+                textAnchor="middle"
+                fontSize={8}
+                fontWeight="700"
+                fill={isDraft ? "#2f5d34" : "#b3402a"}
+                style={{ pointerEvents: "none" }}
+              >
+                ROAD 1pt
+              </text>
+            )}
           </g>
         );
       })}
@@ -123,6 +141,15 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
       {NODES.map(([x, y], i) => (
         <circle key={`n${i}`} cx={x} cy={y} r={4} fill="#cbbd9c" />
       ))}
+
+      {/* knights strip */}
+      <rect x="4" y="398" width="332" height="158" rx="18" fill="#e3d6ba" stroke="#cbbd9c" strokeWidth="2" />
+      <text x="18" y="420" fontSize={10} fontWeight="800" letterSpacing="1.4" fill="#8f7f63">
+        KNIGHTS &amp; RESOURCE JOKERS
+      </text>
+      <text x="18" y="436" fontSize={9} fill="#8f7f63">
+        Build a knight (1 pt), then tap it to spend its resource joker.
+      </text>
 
       {/* build sites */}
       {SITES.map((site) => {
@@ -133,16 +160,16 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
         const jokerAvailable =
           site.kind === "knight" && canUseJoker(sheet, draft, site);
         const spent = jokersSpent.has(site.id);
-
-        const ringClass = cn(
-          "transition-all",
-          (available || isDraft) && "cursor-pointer",
-        );
+        const label = siteLabel(site);
+        const captionX = clampX(site.x);
 
         return (
           <g
             key={site.id}
-            className={ringClass}
+            className={cn(
+              "transition-all",
+              (available || isDraft) && "cursor-pointer",
+            )}
             onClick={() => {
               if (site.kind === "knight" && isBuilt && jokerAvailable) {
                 onToggleJoker(site.id);
@@ -223,7 +250,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
               </>
             )}
 
-            {/* point / order label */}
+            {/* point / order label inside the icon */}
             <text
               x={site.x}
               y={site.y + (site.kind === "knight" ? 3 : 4)}
@@ -234,6 +261,29 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
               style={{ pointerEvents: "none" }}
             >
               {site.kind === "knight" ? site.order : site.points}
+            </text>
+
+            {/* caption: what this piece is and what it is worth */}
+            <text
+              x={captionX}
+              y={site.y + (site.kind === "knight" ? 44 : 22)}
+              textAnchor="middle"
+              fontSize={8.5}
+              fontWeight="700"
+              fill="#6b5d4b"
+              style={{ pointerEvents: "none" }}
+            >
+              {site.kind === "knight" ? `Knight ${site.order}` : label}
+            </text>
+            <text
+              x={captionX}
+              y={site.y + (site.kind === "knight" ? 54 : 31)}
+              textAnchor="middle"
+              fontSize={8}
+              fill="#8f7f63"
+              style={{ pointerEvents: "none" }}
+            >
+              {valueCaption(site, game.island)}
             </text>
 
             {/* spent joker cross-out */}
@@ -260,18 +310,13 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
                           ? " — tap to build"
                           : ""
                   }`
-                : `${site.kind === "city" ? "City" : "Settlement"} — ${site.points} pts${
+                : `${label} — ${valueCaption(site, game.island)}${
                     isBuilt ? " (built)" : available ? " — tap to build" : ""
                   }`}
             </title>
           </g>
         );
       })}
-
-      {/* legend */}
-      <text x={20} y={470} fontSize={10} fill="#6b5d4b">
-        Tap a dashed site to build · tap a built knight to spend its joker
-      </text>
     </svg>
   );
 }

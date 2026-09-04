@@ -53,13 +53,31 @@ export const SITES: Site[] = [
     node: null,
     resource,
     x: 45 + i * 54,
-    y: 430,
+    y: 500,
   })),
 ];
 
 export const SITE_BY_ID: ReadonlyMap<string, Site> = new Map(
   SITES.map((s) => [s.id, s]),
 );
+
+/** Human-readable name for a build site, e.g. "Settlement 3" / "Knight 2". */
+export function siteLabel(site: Site): string {
+  const kind =
+    site.kind === "settlement" ? "Settlement" : site.kind === "city" ? "City" : "Knight";
+  return `${kind} ${site.kind === "knight" ? site.order : site.points}`;
+}
+
+/** Display names for knight joker resources. */
+export const RESOURCE_LABEL: Record<Resource | "wild", string> = {
+  brick: "Brick",
+  lumber: "Lumber",
+  wool: "Wool",
+  grain: "Grain",
+  ore: "Ore",
+  gold: "Gold",
+  wild: "Any resource",
+};
 
 export const RESOURCE_COLORS: Record<Resource, string> = {
   brick: "#b3402a",

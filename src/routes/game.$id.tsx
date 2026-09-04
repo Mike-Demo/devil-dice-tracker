@@ -1,9 +1,11 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IslandMap } from "@/components/IslandMap";
+import { MapLegend } from "@/components/MapLegend";
 import { ScoringTrack } from "@/components/ScoringTrack";
 import { VPTrack } from "@/components/VPTrack";
 import { TURNS_PER_GAME, standings } from "@/lib/engine/engine";
+import { RESOURCE_LABEL, SITE_BY_ID, siteLabel } from "@/lib/engine/island";
 import { useGame } from "@/lib/useGame";
 import { cn } from "@/lib/cn";
 
@@ -36,6 +38,20 @@ function GameScreen() {
     useGame(id);
   const [confirmingX, setConfirmingX] = useState(false);
   const [handoff, setHandoff] = useState<string | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showFlash = (message: string) => {
+    setFlash(message);
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+    flashTimer.current = setTimeout(() => setFlash(null), 1800);
+  };
+
+  useEffect(() => () => {
+    if (flashTimer.current) clearTimeout(flashTimer.current);
+  }, []);
+
+
 
   useEffect(() => {
     if (game?.status === "finished") {
@@ -73,6 +89,69 @@ function GameScreen() {
     else doEndTurn();
   };
 
+  const valueOf = (siteId: string): string => {
+    const site = SITE_BY_ID.get(siteId);
+    if (!site) return "";
+    if (site.kind === "knight") return "1 pt";
+    if (game.island === 2) return site.kind === "city" ? "2 VP" : "1 VP";
+    return `${site.points} pts`;
+  };
+
+  const handleRoad = (idx: number) => {
+    const undoing = game.draft.roads.includes(idx);
+    toggleRoad(idx);
+    showFlash(undoing ? `Road ${idx} removed` : `Road ${idx} built — 1 pt`);
+  };
+
+  const handleSite = (siteId: string) => {
+    const site = SITE_BY_ID.get(siteId);
+    if (!site) return;
+    const undoing = game.draft.sites.includes(siteId);
+    toggleSite(siteId);
+    showFlash(
+      undoing
+        ? `${siteLabel(site)} removed`
+        : `${siteLabel(site)} built — ${valueOf(siteId)}`,
+    );
+  };
+
+  const handleJoker = (siteId: string) => {
+    const site = SITE_BY_ID.get(siteId);
+    if (!site) return;
+    const undoing = game.draft.jokers.includes(siteId);
+    toggleJoker(siteId);
+    showFlash(
+      undoing
+        ? "Joker returned"
+        : `${RESOURCE_LABEL[site.resource ?? "wild"]} joker spent`,
+    );
+  };
+
+  const draftItems: Array<{ key: string; label: string; undo: () => void }> = [
+    ...game.draft.roads.map((idx) => ({
+      key: `r${idx}`,
+      label: `Road ${idx} · 1 pt`,
+      undo: () => handleRoad(idx),
+    })),
+    ...game.draft.sites.map((siteId) => {
+      const site = SITE_BY_ID.get(siteId);
+      return {
+        key: `s${siteId}`,
+        label: site ? `${siteLabel(site)} · ${valueOf(siteId)}` : siteId,
+        undo: () => handleSite(siteId),
+      };
+    }),
+    ...game.draft.jokers.map((siteId) => {
+      const site = SITE_BY_ID.get(siteId);
+      return {
+        key: `j${siteId}`,
+        label: `${RESOURCE_LABEL[site?.resource ?? "wild"]} joker used`,
+        undo: () => handleJoker(siteId),
+      };
+    }),
+  ];
+
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pt-4 pb-28">
       {/* header */}
@@ -99,11 +178,13 @@ function GameScreen() {
       <div className="rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 p-2 shadow-sm">
         <IslandMap
           game={game}
-          onToggleRoad={toggleRoad}
-          onToggleSite={toggleSite}
-          onToggleJoker={toggleJoker}
+          onToggleRoad={handleRoad}
+          onToggleSite={handleSite}
+          onToggleJoker={handleJoker}
         />
       </div>
+
+      <MapLegend island={game.island} />
 
       {/* tracks */}
       <div className="mt-4">
@@ -134,24 +215,58 @@ function GameScreen() {
         </div>
       )}
 
+      {/* tap feedback chip */}
+      {flash && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed inset-x-0 top-3 z-30 flex justify-center px-4"
+        >
+          <span className="rounded-full bg-ink/90 px-4 py-2 text-sm font-bold text-parchment shadow-lg">
+            {flash}
+          </span>
+        </div>
+      )}
+
       {/* fixed end-turn bar */}
       <div className="fixed inset-x-0 bottom-0 border-t-2 border-ink/10 bg-parchment/95 px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex max-w-md items-center gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold text-ink-soft">This turn</p>
-            <p className="font-display text-xl font-black text-ink">
-              {draftPoints > 0 ? `+${draftPoints} pts` : "Nothing built"}
-            </p>
+        <div className="mx-auto max-w-md">
+          {draftItems.length > 0 && (
+            <ul className="mb-2 flex flex-wrap gap-2">
+              {draftItems.map((item) => (
+                <li key={item.key}>
+                  <button
+                    type="button"
+                    onClick={item.undo}
+                    className="rounded-full border border-forest/40 bg-forest/10 px-3 py-1 text-xs font-bold text-forest-deep"
+                    aria-label={`Undo ${item.label}`}
+                  >
+                    {item.label} <span aria-hidden="true">✕</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-ink-soft">
+                This turn{draftItems.length > 0 ? " · tap an item to undo" : ""}
+              </p>
+              <p className="font-display text-xl font-black text-ink">
+                {draftPoints > 0 ? `+${draftPoints} pts` : "Nothing built"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleEndTurn}
+              className="shrink-0 rounded-2xl bg-forest px-8 py-4 font-display text-lg font-bold text-parchment shadow-lg transition-transform active:scale-[0.97]"
+            >
+              End turn
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={handleEndTurn}
-            className="shrink-0 rounded-2xl bg-forest px-8 py-4 font-display text-lg font-bold text-parchment shadow-lg transition-transform active:scale-[0.97]"
-          >
-            End turn
-          </button>
         </div>
       </div>
+
 
       {/* X confirm dialog */}
       {confirmingX && (
