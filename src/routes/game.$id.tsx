@@ -303,6 +303,9 @@ function GameScreen() {
         </div>
       )}
 
+      {/* turn log */}
+      <TurnLog log={game.log ?? []} />
+
       {/* tap feedback chip */}
       {flash && (
         <div
