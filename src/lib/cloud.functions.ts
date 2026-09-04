@@ -126,12 +126,18 @@ export const recordResults = createServerFn({ method: "POST" })
 
     let playersByName = new Map<string, string>();
     if (game.roster_id) {
+      // Make sure everyone who played exists on the roster.
+      await db.from("players").upsert(
+        data.results.map((r) => ({ roster_id: game.roster_id, name: r.name })),
+        { onConflict: "roster_id,name" },
+      );
       const { data: players } = await db
         .from("players")
         .select("id, name")
         .eq("roster_id", game.roster_id);
       playersByName = new Map((players ?? []).map((p) => [p.name, p.id]));
     }
+
 
     const rows = data.results.map((r) => ({
       game_id: game.id,
