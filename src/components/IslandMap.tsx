@@ -1,4 +1,5 @@
 import {
+  HEXES,
   LONGEST_ROAD_INDEX,
   NODES,
   RESOURCE_COLORS,
@@ -6,8 +7,13 @@ import {
   ROAD_COUNT,
   SITES,
   SITE_BY_ID,
+  TERRAIN_LABEL,
+  hexPoints,
+  isHotNumber,
   siteLabel,
+  terrainColor,
 } from "@/lib/engine/island";
+
 import {
   canBuildRoad,
   canBuildSite,
