@@ -7,6 +7,8 @@ import { getRosterStats } from "@/lib/cloud.functions";
 import { getRosterCode } from "@/lib/roster";
 import { cn } from "@/lib/cn";
 import { WaInput, WaButton } from "@/design-system/font-awsome-web-awesome-171158";
+import { CaptchaGate, type CaptchaState } from "@/components/CaptchaGate";
+import { verifyCaptcha } from "@/lib/captcha.functions";
 
 
 export const Route = createFileRoute("/new")({
@@ -81,20 +83,43 @@ function NewGame() {
     }
   };
 
-  const start = () => {
+  const [captcha, setCaptcha] = useState<CaptchaState>({ status: "loading" });
+  const [starting, setStarting] = useState(false);
+
+  const captchaOk =
+    captcha.status === "solved" || captcha.status === "unconfigured";
+
+  const start = async () => {
     if (aiFlags.every(Boolean)) return; // a game needs at least one human
-    const cleaned = names.map((n, i) =>
-      aiFlags[i]
-        ? n.trim() || "Catan Bot"
-        : n.trim() || `Player ${i + 1}`,
-    );
-    const game = newGame(island, cleaned, aiFlags);
-    if (rosterCode) game.rosterCode = rosterCode;
-    saveGame(game);
-    router.navigate({ to: "/game/$id", params: { id: game.id } });
+    if (!captchaOk || starting) return;
+    setStarting(true);
+    try {
+      if (captcha.status === "solved") {
+        const { success } = await verifyCaptcha({
+          data: { token: captcha.token },
+        });
+        if (!success) {
+          setCaptcha({ status: "ready" });
+          setStarting(false);
+          return;
+        }
+      }
+      const cleaned = names.map((n, i) =>
+        aiFlags[i]
+          ? n.trim() || "Catan Bot"
+          : n.trim() || `Player ${i + 1}`,
+      );
+      const game = newGame(island, cleaned, aiFlags);
+      if (rosterCode) game.rosterCode = rosterCode;
+      saveGame(game);
+      router.navigate({ to: "/game/$id", params: { id: game.id } });
+    } catch {
+      setStarting(false);
+    }
   };
 
   const noHuman = aiFlags.every(Boolean);
+  const startDisabled = noHuman || !captchaOk || starting;
 
 
   return (
