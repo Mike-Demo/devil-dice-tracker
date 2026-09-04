@@ -11,10 +11,17 @@ export function MapLegend({ island }: Props) {
   const items: LegendItem[] = [
     {
       swatch: (
+        <span className="block h-4 w-4 rotate-90 bg-[#9fb87a]/60 [clip-path:polygon(25%_0,75%_0,100%_50%,75%_100%,25%_100%,0_50%)]" />
+      ),
+      text: "Hex tiles show terrain & dice numbers",
+    },
+    {
+      swatch: (
         <span className="block h-4 w-4 rounded border-2 border-dashed border-catan-red bg-parchment" />
       ),
       text: "Dashed = available to build now",
     },
+
     {
       swatch: <span className="block h-4 w-4 rounded bg-forest-deep" />,
       text: "Solid green = already built",
