@@ -44,6 +44,18 @@ export interface PlayerState {
   scores: ScoreEntry[];
 }
 
+/** One committed turn, recorded so past turns can be replayed. */
+export interface TurnLogEntry {
+  /** 1-based round the turn happened in. */
+  round: number;
+  player: string;
+  roads: number[];
+  sites: string[];
+  jokers: string[];
+  /** Points scored, or "X" when nothing was built. */
+  score: ScoreEntry;
+}
+
 export interface Game {
   id: string;
   island: Island;

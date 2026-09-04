@@ -98,26 +98,33 @@ function outward(node: number, distance: number): { x: number; y: number } {
   };
 }
 
-/** Knight order on the sheet: one pawn per terrain hex. */
+/**
+ * Knight order on the printed sheet: one pawn per terrain hex —
+ * 1 ore (Mountains), 2 grain (Fields), 3 wool (Pasture),
+ * 4 lumber (Forest), 5 brick (Hills), 6 wild (Desert).
+ */
 const KNIGHT_HEX: ReadonlyArray<{ resource: Resource | "wild"; hex: number }> = [
   { resource: "ore", hex: 0 },
-  { resource: "wool", hex: 4 },
   { resource: "grain", hex: 5 },
-  { resource: "brick", hex: 2 },
+  { resource: "wool", hex: 4 },
   { resource: "lumber", hex: 3 },
+  { resource: "brick", hex: 2 },
   { resource: "wild", hex: 1 },
 ];
 
 export const SITES: Site[] = [
-  // Settlements — ascending point values 3, 4, 5, 6
-  { id: "s1", kind: "settlement", points: 3, order: 1, node: 2, resource: null, ...outward(2, 18) },
-  { id: "s2", kind: "settlement", points: 4, order: 2, node: 6, resource: null, ...outward(6, 18) },
-  { id: "s3", kind: "settlement", points: 5, order: 3, node: 9, resource: null, ...outward(9, 18) },
-  { id: "s4", kind: "settlement", points: 6, order: 4, node: 13, resource: null, ...outward(13, 18) },
-  // Cities — ascending point values 7, 10, 12
-  { id: "c1", kind: "city", points: 7, order: 1, node: 4, resource: null, ...outward(4, 20) },
-  { id: "c2", kind: "city", points: 10, order: 2, node: 8, resource: null, ...outward(8, 20) },
-  { id: "c3", kind: "city", points: 12, order: 3, node: 12, resource: null, ...outward(12, 20) },
+  // Settlements — the paper's six arrow spaces, ascending points 3,5,7,7,9,11
+  { id: "s1", kind: "settlement", points: 3, order: 1, node: 0, resource: null, ...outward(0, 18) },
+  { id: "s2", kind: "settlement", points: 5, order: 2, node: 12, resource: null, ...outward(12, 18) },
+  { id: "s3", kind: "settlement", points: 7, order: 3, node: 9, resource: null, ...outward(9, 18) },
+  { id: "s4", kind: "settlement", points: 7, order: 4, node: 11, resource: null, ...outward(11, 18) },
+  { id: "s5", kind: "settlement", points: 9, order: 5, node: 6, resource: null, ...outward(6, 18) },
+  { id: "s6", kind: "settlement", points: 11, order: 6, node: 3, resource: null, ...outward(3, 18) },
+  // Cities — the paper's four stepped spaces, ascending points 7,12,20,30
+  { id: "c1", kind: "city", points: 7, order: 1, node: 15, resource: null, ...outward(15, 20) },
+  { id: "c2", kind: "city", points: 12, order: 2, node: 13, resource: null, ...outward(13, 20) },
+  { id: "c3", kind: "city", points: 20, order: 3, node: 8, resource: null, ...outward(8, 20) },
+  { id: "c4", kind: "city", points: 30, order: 4, node: 5, resource: null, ...outward(5, 20) },
   // Knights — one per hex, each grants a resource joker
   ...KNIGHT_HEX.map(({ resource, hex }, i) => ({
     id: `k${i + 1}`,
