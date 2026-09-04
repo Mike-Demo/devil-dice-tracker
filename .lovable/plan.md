@@ -1,28 +1,29 @@
-# Hex Catan Board Reskin
+# Copy the paper's Island hex layout
 
-Replace the parchment-style map with a proper Catan hex board — numbered resource tiles, resource cards, and a robber — while keeping every game rule, scoring step, and tap target exactly the same.
+Redraw the map so it matches the printed Catan Dice Game sheet: six terrain hexes in a ring around open sea, roads sitting on the hex edges (including the forks), and building slots as the arrow-shaped tokens from the paper. Scoring and building rules stay exactly as they are today.
 
-## What changes (visual only)
+## What the board becomes
 
-### The board (`src/components/IslandMap.tsx` + `src/lib/engine/island.ts`)
-- **Classic fixed hex layout**: the standard 19-tile island (3-4-5-4-3 rows) in the beginner arrangement — 4 grain, 4 lumber, 4 wool, 3 brick, 3 ore, 1 desert in the middle of the fixed classic positions.
-- **Number tokens**: each producing hex shows its classic number disc (2–12) with probability pips; the desert shows no number and holds the **robber** (a dark pawn token).
-- **Resource-colored hexes** using the existing palette (brick, lumber, wool, grain, ore) with simple SVG texture motifs (hills, forest, pasture, field, mountains) so tiles read at a glance on a phone.
-- **Roads** become the hex-edge path: the existing serpentine road network is laid over the hex borders so roads still build in order and unlock adjacent buildings — same indices, same rules.
-- **Settlements/cities** sit at hex corners attached to their road node, drawn as wooden house / city pieces on a raised token with their point value, instead of flat circles.
-- **Knights become a resource-card row** below the board: each knight is a resource card (Brick / Lumber / Wool / Grain / Ore / Wild "Any") showing the knight symbol, its 1 pt value, and flipping/marking when spent — matching the "resource cards" ask.
+- **Six terrain hexes in the paper's arrangement**: mountains, desert, hills/brick across the top, then fields, pasture, forest below, leaving the open blue water in the middle and around the island, exactly as on the sheet.
+- **Knight pawns on the hexes**: each producing hex carries the numbered pawn (1-5) with its resource picture; the desert carries the "?" wild pawn numbered 6. These are the existing knights, moved onto the tiles instead of sitting in a strip below.
+- **Roads on the hex edges**: every road is a small tilted rectangle marked "1", laid along the island's edges just like the paper, so the branches and forks are visible.
+- **Building slots as arrow tokens**: settlements and cities appear as the paper's white arrow/house shapes with their point numbers (3, 5, 7, 9, 11, 12, 20, 30 style values kept as the app already scores them), placed at the same spots along the road path.
+- **Colours and feel of the printed sheet**: blue sea panel, sand-coloured island border, terrain art tones for mountains, fields, pasture, forest, hills and desert.
 
-### Kept identical
-- Engine, rules, road/site/joker indices, validation, scoring, turn flow, cloud sync — no logic changes.
-- Zone headers, captions, legend (`MapLegend`), itemized scoring chips, tap feedback in the game sheet.
-- Mobile-first sizing: single-column, large tap targets, viewBox sized for phones/tablets.
+## What stays the same
 
-## Files
-- `src/lib/engine/island.ts` — replace node/site coordinates with hex-derived positions; add `HEXES` (resource, number token, robber flag) for the classic fixed layout. Keep all exported IDs/indices stable so the engine and tests are untouched.
-- `src/components/IslandMap.tsx` — full visual rewrite of the SVG: hex tiles, number discs with pips, robber pawn, edge roads, corner buildings, resource-card knight row. Same props and callbacks.
-- Minor: `MapLegend.tsx` copy tweaks if any state visuals change.
+- Roads still unlock one after another in the current fixed order — the forks are drawn but the sequence rule is unchanged, per your choice.
+- All point values, knight jokers, joker spending, turn flow, scoring chips, undo, cloud sync and the results screen are untouched.
+- Every tap target stays finger-sized on a phone, single column.
+
+## Technical notes
+
+- `src/lib/engine/island.ts`: replace `HEXES` with the six-hex paper arrangement and derive road node coordinates from hex-edge midpoints; re-position `SITES` (settlements, cities, knights) onto the corresponding corners/tiles. Site ids, `order`, `points`, `node` indices and `ROAD_COUNT` stay identical so the engine, tests and saved games keep working.
+- `src/components/IslandMap.tsx`: redraw the SVG — sea rect, hex terrain tiles, edge-aligned road rectangles rotated to their edge angle, arrow-shaped build tokens, hex-mounted knight pawns. Same props and callbacks.
+- `src/components/MapLegend.tsx`: adjust wording for the new visuals.
+- Island Two keeps its own hex set in the same style, with the hatched Longest Road space preserved.
 
 ## Verification
-- Existing 11 engine tests must pass unchanged.
-- Typecheck + build clean.
-- Playwright on the game sheet: hexes, numbers, robber visible; tap a road → builds; tap settlement → scores; knight card spend works; End turn advances. Screenshot check on phone-width viewport.
+
+- All 14 existing tests pass unchanged; typecheck and build clean.
+- Browser check at phone width: hexes and numbers visible, road taps still build in order, settlement/city/knight taps score, End turn advances.
