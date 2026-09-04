@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { WaButton, WaDialog } from "@/design-system/font-awsome-web-awesome-171158";
 import { IslandMap } from "@/components/IslandMap";
 import { MapLegend } from "@/components/MapLegend";
 import { ScoringTrack } from "@/components/ScoringTrack";
@@ -31,6 +32,14 @@ export const Route = createFileRoute("/game/$id")({
   component: GameScreen,
 });
 
+type Phase = "roll" | "build" | "score";
+
+const PHASES: Array<{ id: Phase; label: string; hint: string }> = [
+  { id: "roll", label: "1 · Roll", hint: "Roll the dice (re-roll up to 2×)" },
+  { id: "build", label: "2 · Build", hint: "Tap roads & buildings on the map" },
+  { id: "score", label: "3 · Score", hint: "Check the points, then End turn" },
+];
+
 function GameScreen() {
   const { id } = Route.useParams();
   const router = useRouter();
@@ -39,6 +48,7 @@ function GameScreen() {
   const [confirmingX, setConfirmingX] = useState(false);
   const [handoff, setHandoff] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [phase, setPhase] = useState<Phase>("roll");
   const flashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showFlash = (message: string) => {
@@ -58,6 +68,11 @@ function GameScreen() {
       router.navigate({ to: "/game/$id/results", params: { id: game.id } });
     }
   }, [game?.status, game?.id, router]);
+
+  // New turn always starts at the Roll phase.
+  useEffect(() => {
+    setPhase("roll");
+  }, [game?.currentPlayer, game?.round]);
 
   if (notFound) {
     return (
@@ -100,6 +115,7 @@ function GameScreen() {
   const handleRoad = (idx: number) => {
     const undoing = game.draft.roads.includes(idx);
     toggleRoad(idx);
+    if (phase === "roll") setPhase("build");
     showFlash(undoing ? `Road ${idx} removed` : `Road ${idx} built — 1 pt`);
   };
 
@@ -108,6 +124,7 @@ function GameScreen() {
     if (!site) return;
     const undoing = game.draft.sites.includes(siteId);
     toggleSite(siteId);
+    if (phase === "roll") setPhase("build");
     showFlash(
       undoing
         ? `${siteLabel(site)} removed`
@@ -158,13 +175,16 @@ function GameScreen() {
       <header className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-bold tracking-wide text-ink-soft uppercase">
-            {game.island === 1
-              ? `Island One · Round ${game.round}/${TURNS_PER_GAME}`
-              : `Island Two · Round ${game.round}`}
+            {game.island === 1 ? "Island One" : "Island Two"}
           </p>
           <h1 className="truncate font-display text-2xl font-black text-ink">
             {sheet.name}'s turn
           </h1>
+          <p className="text-sm font-bold text-catan-red">
+            {game.island === 1
+              ? `Turn ${game.round} of ${TURNS_PER_GAME}`
+              : `Turn ${game.round}`}
+          </p>
         </div>
         <Link
           to="/"
@@ -173,6 +193,39 @@ function GameScreen() {
           Save & exit
         </Link>
       </header>
+
+      {/* phase indicator */}
+      <div className="mb-3 rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 p-2">
+        <div
+          role="tablist"
+          aria-label="Turn phase"
+          className="flex gap-1.5"
+        >
+          {PHASES.map((p) => {
+            const active = phase === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setPhase(p.id)}
+                className={cn(
+                  "flex-1 rounded-xl px-2 py-2.5 text-xs font-black tracking-wide uppercase transition-colors",
+                  active
+                    ? "bg-catan-red text-parchment shadow"
+                    : "bg-ink/5 text-ink-soft hover:bg-ink/10",
+                )}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-1.5 px-1 text-center text-xs font-semibold text-ink-soft">
+          {PHASES.find((p) => p.id === phase)?.hint}
+        </p>
+      </div>
 
       {/* island map */}
       <div className="rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 p-2 shadow-sm">
@@ -256,48 +309,46 @@ function GameScreen() {
                 {draftPoints > 0 ? `+${draftPoints} pts` : "Nothing built"}
               </p>
             </div>
-            <button
-              type="button"
+            <WaButton
+              variant="brand"
+              size="large"
+              pill
               onClick={handleEndTurn}
-              className="shrink-0 rounded-2xl bg-forest px-8 py-4 font-display text-lg font-bold text-parchment shadow-lg transition-transform active:scale-[0.97]"
+              className="shrink-0"
             >
               End turn
-            </button>
+            </WaButton>
           </div>
         </div>
       </div>
 
 
       {/* X confirm dialog */}
-      {confirmingX && (
-        <div className="fixed inset-0 z-10 flex items-center justify-center bg-ink/50 px-6">
-          <div className="w-full max-w-sm rounded-2xl bg-parchment p-6 shadow-xl">
-            <h2 className="font-display text-xl font-bold text-ink">
-              Nothing built?
-            </h2>
-            <p className="mt-2 text-sm text-ink-soft">
-              Ending the turn without building marks an ✕ in the scoring track,
-              worth <strong>−2 points</strong>.
-            </p>
-            <div className="mt-5 flex gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmingX(false)}
-                className="flex-1 rounded-xl border-2 border-ink/20 py-3 font-bold text-ink"
-              >
-                Keep building
-              </button>
-              <button
-                type="button"
-                onClick={doEndTurn}
-                className="flex-1 rounded-xl bg-catan-red py-3 font-bold text-parchment"
-              >
-                Mark ✕
-              </button>
-            </div>
-          </div>
+      <WaDialog
+        open={confirmingX}
+        label="Nothing built?"
+        without-header
+        with-footer
+        className="confirm-x"
+      >
+        <h2 className="font-display text-xl font-bold">Nothing built?</h2>
+        <p className="mt-2 text-sm">
+          Ending the turn without building marks an ✕ in the scoring track,
+          worth <strong>−2 points</strong>.
+        </p>
+        <div slot="footer" className="flex gap-3">
+          <WaButton
+            appearance="outlined"
+            variant="neutral"
+            onClick={() => setConfirmingX(false)}
+          >
+            Keep building
+          </WaButton>
+          <WaButton variant="brand" onClick={doEndTurn}>
+            Mark ✕
+          </WaButton>
         </div>
-      )}
+      </WaDialog>
 
       {/* pass-and-play handoff */}
       {handoff && (
