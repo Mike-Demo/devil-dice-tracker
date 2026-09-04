@@ -9,7 +9,7 @@ import {
   victoryPoints,
 } from "./engine/engine";
 import { SITE_BY_ID } from "./engine/island";
-import type { Game } from "./engine/types";
+import type { Game, Resource } from "./engine/types";
 import { loadGame, saveGame } from "./storage";
 import { pushGame, pushResults, type SyncStatus } from "./cloudSync";
 
@@ -19,7 +19,7 @@ export interface GameController {
   toggleRoad: (idx: number) => void;
   toggleSite: (siteId: string) => void;
   toggleJoker: (siteId: string) => void;
-  endTurn: () => void;
+  endTurn: (dice?: Resource[]) => void;
   draftPoints: number;
   syncStatus: SyncStatus;
 }
@@ -157,10 +157,10 @@ export function useGame(id: string): GameController {
     [update],
   );
 
-  const endTurn = useCallback(() => {
+  const endTurn = useCallback((dice?: Resource[]) => {
     update((g) => {
       if (g.status !== "active") return;
-      engineEndTurn(g);
+      engineEndTurn(g, dice);
     });
   }, [update]);
 

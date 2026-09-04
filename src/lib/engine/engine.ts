@@ -3,6 +3,7 @@ import type {
   Game,
   Island,
   PlayerState,
+  Resource,
   ScoreEntry,
   Site,
   TurnDraft,
@@ -14,18 +15,29 @@ export const VICTORY_POINTS_TO_WIN = 10;
 
 export const emptyDraft = (): TurnDraft => ({ roads: [], sites: [], jokers: [] });
 
-export function newPlayer(name: string): PlayerState {
+export function newPlayer(name: string, isAI = false): PlayerState {
   const roads = new Array<boolean>(ROAD_COUNT).fill(false);
   roads[0] = true; // purple starting road is already built
-  return { name, roads, built: [], jokersUsed: [], scores: [] };
+  return {
+    name,
+    ...(isAI ? { isAI: true } : {}),
+    roads,
+    built: [],
+    jokersUsed: [],
+    scores: [],
+  };
 }
 
-export function newGame(island: Island, names: string[]): Game {
+export function newGame(
+  island: Island,
+  names: string[],
+  aiFlags?: boolean[],
+): Game {
   const now = Date.now();
   return {
     id: crypto.randomUUID(),
     island,
-    sheets: names.map(newPlayer),
+    sheets: names.map((name, i) => newPlayer(name, aiFlags?.[i] ?? false)),
     currentPlayer: 0,
     round: 1,
     draft: emptyDraft(),
@@ -185,7 +197,7 @@ export function recomputeSpecialVictoryPoints(game: Game): void {
 }
 
 /** Commit the current draft, advance play, and update game status. */
-export function endTurn(game: Game): void {
+export function endTurn(game: Game, dice?: Resource[]): void {
   const sheet = game.sheets[game.currentPlayer];
   const points = draftPoints(game.draft);
 
@@ -201,6 +213,7 @@ export function endTurn(game: Game): void {
     roads: [...game.draft.roads],
     sites: [...game.draft.sites],
     jokers: [...game.draft.jokers],
+    ...(dice ? { dice: [...dice] } : {}),
     score: points > 0 ? points : "X",
   });
 

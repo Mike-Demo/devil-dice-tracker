@@ -107,12 +107,14 @@ function Home() {
         </p>
       </section>
 
-      <Link
-        to="/players"
-        className="mb-8 block rounded-xl border-2 border-ink/15 px-4 py-3 text-center font-bold text-ink"
+      <WaButton
+        href="/players"
+        variant="neutral"
+        appearance="outlined"
+        className="mb-8 w-full font-bold"
       >
         Player stats
-      </Link>
+      </WaButton>
 
 
       {games.length > 0 && (

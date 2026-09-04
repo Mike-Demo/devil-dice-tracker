@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source ".";
 
 @theme {
   --color-parchment: #f3ead8;
@@ -38,6 +39,10 @@
     --wa-color-brand-fill-loud: var(--color-catan-red);
     --wa-color-brand-on-loud: var(--color-parchment);
     --wa-color-brand-border-loud: var(--color-catan-red-deep);
+    --wa-font-sans: var(--font-body);
+    --wa-font-serif: var(--font-display);
+    --wa-color-success-fill-loud: var(--color-forest);
+    --wa-color-success-on-loud: var(--color-parchment);
   }
 }
 

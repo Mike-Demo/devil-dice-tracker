@@ -34,6 +34,8 @@ export interface TurnDraft {
 
 export interface PlayerState {
   name: string;
+  /** Computer-controlled player (solo play). Absent/false for humans. */
+  isAI?: boolean;
   /** 15 road segments; index 0 starts pre-built. */
   roads: boolean[];
   /** Site ids permanently built (committed turns). */
@@ -52,6 +54,8 @@ export interface TurnLogEntry {
   roads: number[];
   sites: string[];
   jokers: string[];
+  /** Final dice faces (AI turns only). */
+  dice?: Resource[];
   /** Points scored, or "X" when nothing was built. */
   score: ScoreEntry;
 }

@@ -87,7 +87,14 @@ function Results() {
                 {RANKS[rank] ?? `${rank + 1}th`}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-bold text-ink">{sheet.name}</p>
+                <p className="truncate font-bold text-ink">
+                  {sheet.name}
+                  {sheet.isAI && (
+                    <span className="ml-2 rounded-full bg-ore/20 px-2 py-0.5 align-middle text-[10px] font-black tracking-wider text-ink-soft uppercase">
+                      AI
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-ink-soft">
                   {game.island === 1
                     ? `${xCount} ✕ mark${xCount === 1 ? "" : "s"} (−${xCount * 2})`
