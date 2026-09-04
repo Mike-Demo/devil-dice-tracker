@@ -69,7 +69,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
             points={hexPoints(hex.x, hex.y)}
             fill={terrainColor(hex.terrain)}
             fillOpacity={0.5}
-            stroke="#a89a7c"
+            stroke="var(--color-map-line)"
             strokeWidth={1.5}
             strokeLinejoin="round"
           />
@@ -80,7 +80,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
             fontSize={7.5}
             fontWeight="700"
             letterSpacing="0.6"
-            fill="#5c4d3a"
+            fill="var(--color-ink-soft)"
             opacity={0.75}
           >
             {TERRAIN_LABEL[hex.terrain].toUpperCase()}
@@ -91,8 +91,8 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
                 cx={hex.x}
                 cy={hex.y}
                 r={12}
-                fill="#f7f0df"
-                stroke="#a89a7c"
+                fill="var(--color-map-token)"
+                stroke="var(--color-map-line)"
                 strokeWidth={1.2}
                 opacity={0.95}
               />
@@ -102,7 +102,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
                 textAnchor="middle"
                 fontSize={13}
                 fontWeight="800"
-                fill={isHotNumber(hex.number) ? "#b3402a" : "#3b2f23"}
+                fill={isHotNumber(hex.number) ? "var(--color-catan-red)" : "var(--color-ink)"}
               >
                 {hex.number}
               </text>
@@ -110,10 +110,10 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
           ) : (
             <>
               {/* robber on the desert */}
-              <ellipse cx={hex.x} cy={hex.y + 10} rx={9} ry={3.5} fill="#3b2f23" opacity={0.35} />
+              <ellipse cx={hex.x} cy={hex.y + 10} rx={9} ry={3.5} fill="var(--color-ink)" opacity={0.35} />
               <path
                 d={`M ${hex.x} ${hex.y - 13} Q ${hex.x + 8} ${hex.y - 12} ${hex.x + 8} ${hex.y - 2} L ${hex.x + 10} ${hex.y + 9} L ${hex.x - 10} ${hex.y + 9} L ${hex.x - 8} ${hex.y - 2} Q ${hex.x - 8} ${hex.y - 12} ${hex.x} ${hex.y - 13} Z`}
-                fill="#3b2f23"
+                fill="var(--color-ink)"
                 opacity={0.8}
               />
             </>
