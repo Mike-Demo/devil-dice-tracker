@@ -3,7 +3,12 @@ import { useEffect, useState } from "react";
 import { listGames, deleteGame } from "@/lib/storage";
 import { normalizeCode } from "@/lib/roster";
 import type { Game } from "@/lib/engine/types";
-import { WaButton, WaAvatar } from "@/design-system/font-awsome-web-awesome-171158";
+import {
+  WaButton,
+  WaAvatar,
+  WaInput,
+} from "@/design-system/font-awsome-web-awesome-171158";
+
 import sheepIcon from "@/assets/sheep.png";
 
 
