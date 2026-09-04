@@ -49,3 +49,9 @@ body {
 .cta-red::part(base):hover {
   background-color: var(--color-catan-red-deep);
 }
+
+/* WA native styles clamp plain <button> height; our Tailwind buttons size themselves */
+button:not(wa-button) {
+  height: auto;
+  min-height: 0;
+}
