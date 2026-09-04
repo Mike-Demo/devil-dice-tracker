@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlayersRouteImport } from './routes/players'
 import { Route as NewRouteImport } from './routes/new'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GameIdRouteImport } from './routes/game.$id'
 import { Route as GCodeRouteImport } from './routes/g.$code'
 import { Route as GameIdIndexRouteImport } from './routes/game.$id.index'
 import { Route as GameIdResultsRouteImport } from './routes/game.$id.results'
@@ -33,15 +34,20 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GameIdRoute = GameIdRouteImport.update({
+  id: '/game/$id',
+  path: '/game/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GCodeRoute = GCodeRouteImport.update({
   id: '/g/$code',
   path: '/g/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GameIdIndexRoute = GameIdIndexRouteImport.update({
-  id: '/game/$id/',
-  path: '/game/$id/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => GameIdRoute,
 } as any)
 const GameIdResultsRoute = GameIdResultsRouteImport.update({
   id: '/results',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/new': typeof NewRoute
   '/players': typeof PlayersRoute
   '/g/$code': typeof GCodeRoute
+  '/game/$id': typeof GameIdRouteWithChildren
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
   '/game/$id/results': typeof GameIdResultsRoute
@@ -87,6 +94,7 @@ export interface FileRoutesById {
   '/new': typeof NewRoute
   '/players': typeof PlayersRoute
   '/g/$code': typeof GCodeRoute
+  '/game/$id': typeof GameIdRouteWithChildren
   '/__component/preview/$': typeof Char91__componentChar93PreviewSplatRoute
   '/__mockup/preview/$': typeof Char91__mockupChar93PreviewSplatRoute
   '/game/$id/results': typeof GameIdResultsRoute
@@ -99,6 +107,7 @@ export interface FileRouteTypes {
     | '/new'
     | '/players'
     | '/g/$code'
+    | '/game/$id'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
     | '/game/$id/results'
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/new'
     | '/players'
     | '/g/$code'
+    | '/game/$id'
     | '/__component/preview/$'
     | '/__mockup/preview/$'
     | '/game/$id/results'
@@ -130,9 +140,9 @@ export interface RootRouteChildren {
   NewRoute: typeof NewRoute
   PlayersRoute: typeof PlayersRoute
   GCodeRoute: typeof GCodeRoute
+  GameIdRoute: typeof GameIdRouteWithChildren
   Char91__componentChar93PreviewSplatRoute: typeof Char91__componentChar93PreviewSplatRoute
   Char91__mockupChar93PreviewSplatRoute: typeof Char91__mockupChar93PreviewSplatRoute
-  GameIdIndexRoute: typeof GameIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/game/$id': {
+      id: '/game/$id'
+      path: '/game/$id'
+      fullPath: '/game/$id'
+      preLoaderRoute: typeof GameIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/g/$code': {
       id: '/g/$code'
       path: '/g/$code'
@@ -167,10 +184,10 @@ declare module '@tanstack/react-router' {
     }
     '/game/$id/': {
       id: '/game/$id/'
-      path: '/game/$id'
+      path: '/'
       fullPath: '/game/$id/'
       preLoaderRoute: typeof GameIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof GameIdRoute
     }
     '/game/$id/results': {
       id: '/game/$id/results'
@@ -196,15 +213,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface GameIdRouteChildren {
+  GameIdResultsRoute: typeof GameIdResultsRoute
+  GameIdIndexRoute: typeof GameIdIndexRoute
+}
+
+const GameIdRouteChildren: GameIdRouteChildren = {
+  GameIdResultsRoute: GameIdResultsRoute,
+  GameIdIndexRoute: GameIdIndexRoute,
+}
+
+const GameIdRouteWithChildren =
+  GameIdRoute._addFileChildren(GameIdRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NewRoute: NewRoute,
   PlayersRoute: PlayersRoute,
   GCodeRoute: GCodeRoute,
+  GameIdRoute: GameIdRouteWithChildren,
   Char91__componentChar93PreviewSplatRoute:
     Char91__componentChar93PreviewSplatRoute,
   Char91__mockupChar93PreviewSplatRoute: Char91__mockupChar93PreviewSplatRoute,
-  GameIdIndexRoute: GameIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
