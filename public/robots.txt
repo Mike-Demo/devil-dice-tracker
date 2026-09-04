@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /game/
+
+Sitemap: https://catan.quest/sitemap.xml
