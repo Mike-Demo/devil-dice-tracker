@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Game } from "./engine/types";
+import type { Json } from "@/integrations/supabase/types";
 import { aggregateProfiles, type PlayerProfile } from "./profileStats";
 
 
@@ -67,7 +68,7 @@ export const upsertGame = createServerFn({ method: "POST" })
       const { error } = await db
         .from("games")
         .update({
-          state: data.state,
+          state: data.state as Json,
           status: game.status,
           island: game.island,
           roster_id: rosterId,
@@ -82,7 +83,7 @@ export const upsertGame = createServerFn({ method: "POST" })
       const code = generateCode();
       const { error } = await db.from("games").insert({
         code,
-        state: data.state,
+        state: data.state as Json,
         status: game.status,
         island: game.island,
         roster_id: rosterId,
@@ -125,16 +126,17 @@ export const recordResults = createServerFn({ method: "POST" })
     if (!game) return { recorded: false };
 
     let playersByName = new Map<string, string>();
-    if (game.roster_id) {
+    const rosterId = game.roster_id;
+    if (rosterId) {
       // Make sure everyone who played exists on the roster.
       await db.from("players").upsert(
-        data.results.map((r) => ({ roster_id: game.roster_id, name: r.name })),
+        data.results.map((r) => ({ roster_id: rosterId, name: r.name })),
         { onConflict: "roster_id,name" },
       );
       const { data: players } = await db
         .from("players")
         .select("id, name")
-        .eq("roster_id", game.roster_id);
+        .eq("roster_id", rosterId);
       playersByName = new Map((players ?? []).map((p) => [p.name, p.id]));
     }
 
