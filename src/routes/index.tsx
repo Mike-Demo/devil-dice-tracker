@@ -111,7 +111,7 @@ function Home() {
         href="/players"
         variant="neutral"
         appearance="outlined"
-        className="mb-8 w-full font-bold"
+        className="mb-8 w-full"
       >
         Player stats
       </WaButton>
