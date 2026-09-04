@@ -36,3 +36,16 @@ body {
 .font-display {
   font-family: var(--font-display);
 }
+
+/* Web Awesome brand CTA in Catan red (styled through the button's base part) */
+.cta-red::part(base) {
+  background-color: var(--color-catan-red);
+  border-color: var(--color-catan-red-deep);
+  color: var(--color-parchment);
+  font-family: var(--font-display, "Fraunces", serif);
+  font-weight: 700;
+  font-size: var(--text-xl, 1.25rem);
+}
+.cta-red::part(base):hover {
+  background-color: var(--color-catan-red-deep);
+}
