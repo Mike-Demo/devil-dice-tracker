@@ -19,7 +19,7 @@ import { secureInt } from "@/lib/diceRandom";
 import { useGame } from "@/lib/useGame";
 import { cn } from "@/lib/cn";
 
-export const Route = createFileRoute("/game/$id")({
+export const Route = createFileRoute("/game/$id/")({
   head: () => ({
     meta: [
       { title: "Game Sheet — Catan Dice Game Score Sheet" },
