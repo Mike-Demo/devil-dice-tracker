@@ -37,7 +37,7 @@ function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
-      <header className="mb-8 flex flex-col items-center text-center">
+      <header className="home-header flex flex-col items-center text-center">
         <WaAvatar
           image={sheepIcon}
           label="Sheep mascot"

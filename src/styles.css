@@ -57,6 +57,9 @@ button:not(wa-button) {
 }
 
 /* Home header sheep — wa-avatar scales from font-size via Web Awesome tokens */
+.home-header {
+  margin-block-end: var(--wa-space-xl);
+}
 .sheep-avatar {
   font-size: var(--wa-font-size-4xl);
   margin-block-end: var(--wa-space-m);
