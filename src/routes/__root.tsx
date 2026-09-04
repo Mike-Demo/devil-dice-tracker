@@ -6,6 +6,8 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { WebAwesomeLoader } from "@/design-system/font-awsome-web-awesome-171158";
+import { WEB_AWESOME_HTML_CLASSES } from "@/design-system/font-awsome-web-awesome-171158/webawesome/setup";
 
 import appCss from "../styles.css?url";
 
@@ -44,11 +46,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={WEB_AWESOME_HTML_CLASSES}>
       <head>
         <HeadContent />
       </head>
       <body>
+        <WebAwesomeLoader />
         {children}
         <Scripts />
       </body>
