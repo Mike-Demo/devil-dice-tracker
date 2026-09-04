@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { IslandMap } from "@/components/IslandMap";
 import { MapLegend } from "@/components/MapLegend";
+import { TurnLog } from "@/components/TurnLog";
 import { ScoringTrack } from "@/components/ScoringTrack";
 import { VPTrack } from "@/components/VPTrack";
 import { TURNS_PER_GAME, standings } from "@/lib/engine/engine";

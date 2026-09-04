@@ -9,7 +9,8 @@ import {
   WaInput,
 } from "@/design-system/font-awsome-web-awesome-171158";
 
-import sheepIcon from "@/assets/sheep.png";
+const LOGO_URL = "/logo.png";
+const LOGO_ABSOLUTE_URL = "https://catan.quest/logo.png";
 
 
 export const Route = createFileRoute("/")({
