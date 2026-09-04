@@ -71,25 +71,28 @@ function Home() {
 
       <section aria-label="Open a game by code" className="mb-4">
         <div className="flex gap-2">
-          <input
+          <WaInput
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setCode(e.target.value)
+            }
             placeholder="Game code"
             aria-label="Game code"
-            maxLength={7}
-            className="min-w-0 flex-1 rounded-xl border-2 border-ink/15 bg-parchment-deep/60 px-3 py-3 font-display text-base tracking-widest text-ink uppercase"
+            maxlength={7}
+            className="min-w-0 flex-1"
           />
-          <button
-            type="button"
+          <WaButton
+            variant="neutral"
+            appearance="outlined"
             onClick={() => {
               const clean = normalizeCode(code);
               if (clean.length === 6)
                 router.navigate({ to: "/g/$code", params: { code: clean } });
             }}
-            className="shrink-0 rounded-xl border-2 border-ink/20 px-4 font-bold text-ink"
           >
             Open
-          </button>
+          </WaButton>
+
         </div>
         <p className="mt-1 text-xs text-ink-soft">
           Reopen a game from any device with its code.
