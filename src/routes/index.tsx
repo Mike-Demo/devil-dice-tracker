@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { listGames, deleteGame } from "@/lib/storage";
 import type { Game } from "@/lib/engine/types";
 import { WaButton } from "@/design-system/font-awsome-web-awesome-171158";
+import sheepIcon from "@/assets/sheep.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,7 +37,14 @@ function Home() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
-      <header className="mb-8 text-center">
+      <header className="mb-8 flex flex-col items-center text-center">
+        <img
+          src={sheepIcon}
+          alt="Sheep mascot"
+          width={256}
+          height={256}
+          className="mb-3 h-16 w-16"
+        />
         <p className="mb-1 text-xs font-bold tracking-[0.3em] text-catan-red uppercase">
           Roll · Play · Settle
         </p>
