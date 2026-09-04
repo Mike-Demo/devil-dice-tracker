@@ -25,6 +25,7 @@ export default defineConfig(({ command, mode }) => {
     },
     plugins: [
       mockupPreviewPlugin(),
+      tailwindcss(),
       tsConfigPaths({ projects: ["./tsconfig.json"] }),
       ...(useCloudflare ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
       tanstackStart(),
