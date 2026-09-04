@@ -116,6 +116,26 @@ describe("game flow", () => {
     expect(game.winner).toBe(0); // A has 1 point, B has all X
   });
 
+  it("records every committed turn in the log", () => {
+    const game = newGame(1, ["A", "B"]);
+    game.draft = { roads: [1, 2], sites: ["s1", "k1"], jokers: ["k1"] };
+    endTurn(game);
+    expect(game.log).toHaveLength(1);
+    expect(game.log![0]).toEqual({
+      round: 1,
+      player: "A",
+      roads: [1, 2],
+      sites: ["s1", "k1"],
+      jokers: ["k1"],
+      score: 2 + 3 + 1,
+    });
+    endTurn(game); // B builds nothing
+    expect(game.log).toHaveLength(2);
+    expect(game.log![1].player).toBe("B");
+    expect(game.log![1].score).toBe("X");
+    expect(game.log![1].roads).toEqual([]);
+  });
+
   it("Island Two finishes at 10 victory points", () => {
     const game = newGame(2, ["A"]);
     game.sheets[0].built = ["s1", "s2", "s3", "s4", "c1", "c2", "c3"]; // 4 + 6 = 10 VP
