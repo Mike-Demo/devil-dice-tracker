@@ -322,31 +322,35 @@ function GameScreen() {
 
 
       {/* X confirm dialog */}
-      <WaDialog
-        open={confirmingX}
-        label="Nothing built?"
-        without-header
-        with-footer
-        className="confirm-x"
-      >
-        <h2 className="font-display text-xl font-bold">Nothing built?</h2>
-        <p className="mt-2 text-sm">
-          Ending the turn without building marks an ✕ in the scoring track,
-          worth <strong>−2 points</strong>.
-        </p>
-        <div slot="footer" className="flex gap-3">
-          <WaButton
-            appearance="outlined"
-            variant="neutral"
-            onClick={() => setConfirmingX(false)}
-          >
-            Keep building
-          </WaButton>
-          <WaButton variant="brand" onClick={doEndTurn}>
-            Mark ✕
-          </WaButton>
+      {confirmingX && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-ink/50 px-6">
+          <div className="w-full max-w-sm rounded-2xl bg-parchment p-6 shadow-xl">
+            <h2 className="font-display text-xl font-bold text-ink">
+              Nothing built?
+            </h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              Ending the turn without building marks an ✕ in the scoring track,
+              worth <strong>−2 points</strong>.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmingX(false)}
+                className="flex-1 rounded-xl border-2 border-ink/20 py-3 font-bold text-ink"
+              >
+                Keep building
+              </button>
+              <button
+                type="button"
+                onClick={doEndTurn}
+                className="flex-1 rounded-xl bg-catan-red py-3 font-bold text-parchment"
+              >
+                Mark ✕
+              </button>
+            </div>
+          </div>
         </div>
-      </WaDialog>
+      )}
 
       {/* pass-and-play handoff */}
       {handoff && (
