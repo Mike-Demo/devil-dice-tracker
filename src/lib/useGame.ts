@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   canBuildRoad,
   canBuildSite,
@@ -11,6 +11,7 @@ import {
 import { SITE_BY_ID } from "./engine/island";
 import type { Game } from "./engine/types";
 import { loadGame, saveGame } from "./storage";
+import { pushGame, pushResults, type SyncStatus } from "./cloudSync";
 
 export interface GameController {
   game: Game | null;
@@ -20,28 +21,86 @@ export interface GameController {
   toggleJoker: (siteId: string) => void;
   endTurn: () => void;
   draftPoints: number;
+  syncStatus: SyncStatus;
 }
+
+const SYNC_DEBOUNCE_MS = 700;
 
 export function useGame(id: string): GameController {
   const [game, setGame] = useState<Game | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const pendingRef = useRef<Game | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flush = useCallback(async () => {
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (!pending) return;
+    setSyncStatus("saving");
+    try {
+      const code = await pushGame(pending);
+      if (code && !pending.code) {
+        setGame((prev) => {
+          if (!prev || prev.id !== pending.id) return prev;
+          const next: Game = { ...prev, code };
+          saveGame(next);
+          return next;
+        });
+      }
+      if (pending.status === "finished") {
+        await pushResults({ ...pending, code: code ?? pending.code });
+      }
+      setSyncStatus("saved");
+    } catch {
+      setSyncStatus("offline");
+    }
+  }, []);
+
+  const scheduleSync = useCallback(
+    (next: Game) => {
+      pendingRef.current = next;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        void flush();
+      }, SYNC_DEBOUNCE_MS);
+    },
+    [flush],
+  );
 
   useEffect(() => {
     const loaded = loadGame(id);
-    if (loaded) setGame(loaded);
-    else setNotFound(true);
-  }, [id]);
+    if (loaded) {
+      setGame(loaded);
+      // Make sure the game exists in the cloud (and has a share code) even if
+      // the player never taps anything this session.
+      scheduleSync(loaded);
+    } else {
+      setNotFound(true);
+    }
+  }, [id, scheduleSync]);
 
-  const update = useCallback((mutate: (g: Game) => void) => {
-    setGame((prev) => {
-      if (!prev) return prev;
-      const next: Game = structuredClone(prev);
-      mutate(next);
-      next.updatedAt = Date.now();
-      saveGame(next);
-      return next;
-    });
-  }, []);
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  const update = useCallback(
+    (mutate: (g: Game) => void) => {
+      setGame((prev) => {
+        if (!prev) return prev;
+        const next: Game = structuredClone(prev);
+        mutate(next);
+        next.updatedAt = Date.now();
+        saveGame(next);
+        scheduleSync(next);
+        return next;
+      });
+    },
+    [scheduleSync],
+  );
 
   const toggleRoad = useCallback(
     (idx: number) => {
@@ -113,6 +172,7 @@ export function useGame(id: string): GameController {
     toggleJoker,
     endTurn,
     draftPoints: game ? draftPoints(game.draft) : 0,
+    syncStatus,
   };
 }
 

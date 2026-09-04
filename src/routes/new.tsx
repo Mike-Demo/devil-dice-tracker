@@ -1,10 +1,13 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { newGame } from "@/lib/engine/engine";
 import type { Island } from "@/lib/engine/types";
 import { saveGame } from "@/lib/storage";
+import { getRosterStats } from "@/lib/cloud.functions";
+import { getRosterCode } from "@/lib/roster";
 import { cn } from "@/lib/cn";
 import { WaInput, WaButton } from "@/design-system/font-awsome-web-awesome-171158";
+
 
 export const Route = createFileRoute("/new")({
   head: () => ({
@@ -30,6 +33,17 @@ function NewGame() {
   const router = useRouter();
   const [island, setIsland] = useState<Island>(1);
   const [names, setNames] = useState<string[]>(["Player 1"]);
+  const [rosterCode, setRoster] = useState<string | null>(null);
+  const [rosterNames, setRosterNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    const code = getRosterCode();
+    if (!code) return;
+    setRoster(code);
+    void getRosterStats({ data: { code } })
+      .then((stats) => setRosterNames((stats ?? []).map((p) => p.name)))
+      .catch(() => setRosterNames([]));
+  }, []);
 
   const addPlayer = () => {
     if (names.length < 4) setNames([...names, `Player ${names.length + 1}`]);
@@ -40,13 +54,21 @@ function NewGame() {
   const rename = (idx: number, value: string) => {
     setNames(names.map((n, i) => (i === idx ? value : n)));
   };
+  const addFromRoster = (name: string) => {
+    if (names.includes(name) || names.length >= 4) return;
+    const blank = names.findIndex((n) => /^Player \d+$/.test(n.trim()));
+    if (blank >= 0) rename(blank, name);
+    else setNames([...names, name]);
+  };
 
   const start = () => {
     const cleaned = names.map((n, i) => n.trim() || `Player ${i + 1}`);
     const game = newGame(island, cleaned);
+    if (rosterCode) game.rosterCode = rosterCode;
     saveGame(game);
     router.navigate({ to: "/game/$id", params: { id: game.id } });
   };
+
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
@@ -89,6 +111,27 @@ function NewGame() {
         <h2 className="mb-2 text-sm font-bold tracking-wide text-ink-soft uppercase">
           Players ({names.length}/4)
         </h2>
+        {rosterNames.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {rosterNames.map((name) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => addFromRoster(name)}
+                disabled={names.includes(name)}
+                className={cn(
+                  "rounded-full border-2 px-3 py-1 text-xs font-bold",
+                  names.includes(name)
+                    ? "border-forest/40 bg-forest/10 text-forest-deep"
+                    : "border-ink/20 text-ink-soft",
+                )}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex flex-col gap-2">
           {names.map((name, idx) => (
             <div key={idx} className="flex gap-2">

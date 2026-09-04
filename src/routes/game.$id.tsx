@@ -43,8 +43,17 @@ const PHASES: Array<{ id: Phase; label: string; hint: string }> = [
 function GameScreen() {
   const { id } = Route.useParams();
   const router = useRouter();
-  const { game, notFound, toggleRoad, toggleSite, toggleJoker, endTurn, draftPoints } =
-    useGame(id);
+  const {
+    game,
+    notFound,
+    toggleRoad,
+    toggleSite,
+    toggleJoker,
+    endTurn,
+    draftPoints,
+    syncStatus,
+  } = useGame(id);
+
   const [confirmingX, setConfirmingX] = useState(false);
   const [handoff, setHandoff] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
@@ -186,13 +195,39 @@ function GameScreen() {
               : `Turn ${game.round}`}
           </p>
         </div>
-        <Link
-          to="/"
-          className="shrink-0 rounded-lg border border-ink/20 px-3 py-2 text-xs font-bold text-ink-soft"
-        >
-          Save & exit
-        </Link>
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <Link
+            to="/"
+            className="rounded-lg border border-ink/20 px-3 py-2 text-xs font-bold text-ink-soft"
+          >
+            Save & exit
+          </Link>
+          {game.code && (
+            <button
+              type="button"
+              onClick={() => {
+                const url = `${window.location.origin}/g/${game.code}`;
+                void navigator.clipboard?.writeText(url);
+                showFlash("Game link copied");
+              }}
+              className="rounded-lg px-1 text-[11px] font-bold tracking-widest text-ink-soft"
+              aria-label={`Copy link to game ${game.code}`}
+            >
+              {game.code} · copy link
+            </button>
+          )}
+          <span className="px-1 text-[11px] font-semibold text-ink-soft/80">
+            {syncStatus === "saving"
+              ? "Saving…"
+              : syncStatus === "offline"
+                ? "Offline — saved on device"
+                : syncStatus === "saved"
+                  ? "Saved to cloud"
+                  : ""}
+          </span>
+        </div>
       </header>
+
 
       {/* phase indicator */}
       <div className="mb-3 rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 p-2">
