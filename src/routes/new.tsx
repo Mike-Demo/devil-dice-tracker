@@ -66,7 +66,7 @@ function NewGame() {
               onClick={() => setIsland(n)}
               aria-pressed={island === n}
               className={cn(
-                "rounded-xl border-2 p-4 text-left transition-colors",
+                "h-auto min-h-0 rounded-xl border-2 p-4 text-left transition-colors",
                 island === n
                   ? "border-catan-red bg-catan-red/10"
                   : "border-ink/15 bg-parchment-deep/50",
