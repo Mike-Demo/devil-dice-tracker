@@ -216,7 +216,12 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
             }}
           >
             {/* tap target */}
-            <circle cx={site.x} cy={site.y} r={22} fill="transparent" />
+            <circle
+              cx={site.x}
+              cy={site.y}
+              r={site.kind === "knight" ? 22 : 17}
+              fill="transparent"
+            />
 
             {site.kind === "settlement" && (
               /* paper's arrow-shaped settlement space */

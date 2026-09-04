@@ -44,6 +44,18 @@ export interface PlayerState {
   scores: ScoreEntry[];
 }
 
+/** One committed turn, recorded so past turns can be replayed. */
+export interface TurnLogEntry {
+  /** 1-based round the turn happened in. */
+  round: number;
+  player: string;
+  roads: number[];
+  sites: string[];
+  jokers: string[];
+  /** Points scored, or "X" when nothing was built. */
+  score: ScoreEntry;
+}
+
 export interface Game {
   id: string;
   island: Island;
@@ -58,6 +70,8 @@ export interface Game {
   winner: number | null;
   createdAt: number;
   updatedAt: number;
+  /** Committed turns, oldest first. Optional for games saved before the log existed. */
+  log?: TurnLogEntry[];
   /** Shareable cloud code, once the game has synced at least once. */
   code?: string;
   /** Roster this game's players came from, if any. */

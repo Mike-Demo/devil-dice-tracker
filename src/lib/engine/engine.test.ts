@@ -36,8 +36,7 @@ describe("roads", () => {
 describe("sites", () => {
   it("Island One enforces ascending settlement order", () => {
     const sheet = newPlayer("A");
-    sheet.roads[2] = true; // adjacent to s1 (node 2)
-    sheet.roads[6] = true; // adjacent to s2 (node 6)
+    sheet.roads[11] = true; // adjacent to s2 (node 12)
     const s1 = SITE_BY_ID.get("s1")!;
     const s2 = SITE_BY_ID.get("s2")!;
     const draft = emptyDraft();
@@ -48,10 +47,30 @@ describe("sites", () => {
 
   it("requires an adjacent road", () => {
     const sheet = newPlayer("A");
-    const s1 = SITE_BY_ID.get("s1")!;
-    expect(canBuildSite(sheet, emptyDraft(), 1, s1)).toBe(false);
-    sheet.roads[1] = true; // node 2's preceding road
-    expect(canBuildSite(sheet, emptyDraft(), 1, s1)).toBe(true);
+    const s2 = SITE_BY_ID.get("s2")!;
+    expect(canBuildSite(sheet, emptyDraft(), 2, s2)).toBe(false);
+    sheet.roads[11] = true; // node 12's preceding road
+    expect(canBuildSite(sheet, emptyDraft(), 2, s2)).toBe(true);
+  });
+
+  it("matches the printed sheet's values and knight tiles", () => {
+    const settlements = ["s1", "s2", "s3", "s4", "s5", "s6"].map(
+      (id) => SITE_BY_ID.get(id)!,
+    );
+    expect(settlements.map((s) => s.points)).toEqual([3, 5, 7, 7, 9, 11]);
+    const cities = ["c1", "c2", "c3", "c4"].map((id) => SITE_BY_ID.get(id)!);
+    expect(cities.map((c) => c.points)).toEqual([7, 12, 20, 30]);
+    const knights = ["k1", "k2", "k3", "k4", "k5", "k6"].map(
+      (id) => SITE_BY_ID.get(id)!,
+    );
+    expect(knights.map((k) => k.resource)).toEqual([
+      "ore",
+      "grain",
+      "wool",
+      "lumber",
+      "brick",
+      "wild",
+    ]);
   });
 
   it("jokers require the knight to be built and unspent", () => {
@@ -95,6 +114,26 @@ describe("game flow", () => {
     for (let i = 0; i < (TURNS_PER_GAME - 1) * 2; i++) endTurn(game);
     expect(game.status).toBe("finished");
     expect(game.winner).toBe(0); // A has 1 point, B has all X
+  });
+
+  it("records every committed turn in the log", () => {
+    const game = newGame(1, ["A", "B"]);
+    game.draft = { roads: [1, 2], sites: ["s1", "k1"], jokers: ["k1"] };
+    endTurn(game);
+    expect(game.log).toHaveLength(1);
+    expect(game.log![0]).toEqual({
+      round: 1,
+      player: "A",
+      roads: [1, 2],
+      sites: ["s1", "k1"],
+      jokers: ["k1"],
+      score: 2 + 3 + 1,
+    });
+    endTurn(game); // B builds nothing
+    expect(game.log).toHaveLength(2);
+    expect(game.log![1].player).toBe("B");
+    expect(game.log![1].score).toBe("X");
+    expect(game.log![1].roads).toEqual([]);
   });
 
   it("Island Two finishes at 10 victory points", () => {
