@@ -17,6 +17,10 @@
   --color-wool: #9fb87a;
   --color-grain: #d9b23c;
   --color-ore: #6e6a63;
+  --color-desert: #d9c89a;
+  --color-map-line: #a89a7c;
+  --color-map-token: #f7f0df;
+
 
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Nunito Sans", system-ui, sans-serif;
