@@ -31,7 +31,7 @@ export function MapLegend({ island }: Props) {
     },
     {
       swatch: (
-        <span className="block h-4 w-4 rounded border-2 border-[#c9a227] bg-forest-deep" />
+        <span className="block h-4 w-4 rounded border-2 border-gold bg-forest-deep" />
       ),
       text: "Gold ring = knight joker ready",
     },
