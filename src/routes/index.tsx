@@ -2,6 +2,7 @@ import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listGames, deleteGame } from "@/lib/storage";
 import type { Game } from "@/lib/engine/types";
+import { WaButton } from "@/design-system/font-awsome-web-awesome-171158";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,12 +49,15 @@ function Home() {
         </p>
       </header>
 
-      <Link
-        to="/new"
-        className="mb-8 block rounded-2xl bg-catan-red px-6 py-4 text-center font-display text-xl font-bold text-parchment shadow-lg transition-transform active:scale-[0.98]"
+      <WaButton
+        href="/new"
+        variant="brand"
+        size="large"
+        pill
+        className="cta-red mb-8 w-full"
       >
         Start a new game
-      </Link>
+      </WaButton>
 
       {games.length > 0 && (
         <section aria-label="Saved games">

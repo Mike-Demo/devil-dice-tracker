@@ -4,6 +4,7 @@ import { newGame } from "@/lib/engine/engine";
 import type { Island } from "@/lib/engine/types";
 import { saveGame } from "@/lib/storage";
 import { cn } from "@/lib/cn";
+import { WaInput } from "@/design-system/font-awsome-web-awesome-171158";
 
 export const Route = createFileRoute("/new")({
   head: () => ({
@@ -91,12 +92,14 @@ function NewGame() {
         <div className="flex flex-col gap-2">
           {names.map((name, idx) => (
             <div key={idx} className="flex gap-2">
-              <input
+              <WaInput
                 value={name}
-                onChange={(e) => rename(idx, e.target.value)}
+                onInput={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  rename(idx, e.target.value)
+                }
                 aria-label={`Player ${idx + 1} name`}
-                maxLength={20}
-                className="min-w-0 flex-1 rounded-xl border-2 border-ink/15 bg-parchment px-4 py-3 text-base font-semibold text-ink outline-none focus:border-catan-red"
+                maxlength={20}
+                className="min-w-0 flex-1"
               />
               {names.length > 1 && (
                 <button
