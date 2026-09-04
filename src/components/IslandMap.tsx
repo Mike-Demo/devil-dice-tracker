@@ -62,6 +62,65 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
       {/* island backdrop */}
       <rect x="4" y="4" width="332" height="384" rx="18" fill="#eadfc6" stroke="#cbbd9c" strokeWidth="2" />
 
+      {/* terrain hexes — same official layout, printed like the score sheet */}
+      {HEXES.map((hex) => (
+        <g key={`h${hex.x}-${hex.y}`} style={{ pointerEvents: "none" }}>
+          <polygon
+            points={hexPoints(hex.x, hex.y)}
+            fill={terrainColor(hex.terrain)}
+            fillOpacity={0.5}
+            stroke="#a89a7c"
+            strokeWidth={1.5}
+            strokeLinejoin="round"
+          />
+          <text
+            x={hex.x}
+            y={hex.y - 20}
+            textAnchor="middle"
+            fontSize={7.5}
+            fontWeight="700"
+            letterSpacing="0.6"
+            fill="#5c4d3a"
+            opacity={0.75}
+          >
+            {TERRAIN_LABEL[hex.terrain].toUpperCase()}
+          </text>
+          {hex.number !== null ? (
+            <>
+              <circle
+                cx={hex.x}
+                cy={hex.y}
+                r={12}
+                fill="#f7f0df"
+                stroke="#a89a7c"
+                strokeWidth={1.2}
+                opacity={0.95}
+              />
+              <text
+                x={hex.x}
+                y={hex.y + 4.5}
+                textAnchor="middle"
+                fontSize={13}
+                fontWeight="800"
+                fill={isHotNumber(hex.number) ? "#b3402a" : "#3b2f23"}
+              >
+                {hex.number}
+              </text>
+            </>
+          ) : (
+            <>
+              {/* robber on the desert */}
+              <ellipse cx={hex.x} cy={hex.y + 10} rx={9} ry={3.5} fill="#3b2f23" opacity={0.35} />
+              <path
+                d={`M ${hex.x} ${hex.y - 13} Q ${hex.x + 8} ${hex.y - 12} ${hex.x + 8} ${hex.y - 2} L ${hex.x + 10} ${hex.y + 9} L ${hex.x - 10} ${hex.y + 9} L ${hex.x - 8} ${hex.y - 2} Q ${hex.x - 8} ${hex.y - 12} ${hex.x} ${hex.y - 13} Z`}
+                fill="#3b2f23"
+                opacity={0.8}
+              />
+            </>
+          )}
+        </g>
+      ))}
+
       {/* zone header: roads & buildings */}
       <text x="18" y="21" fontSize={10} fontWeight="800" letterSpacing="1.4" fill="#8f7f63">
         ROADS &amp; BUILDINGS
@@ -69,6 +128,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
       <text x="18" y="378" fontSize={9} fill="#8f7f63">
         Roads build in order (1 pt each) and unlock the buildings next to them.
       </text>
+
 
       {/* roads */}
       {Array.from({ length: ROAD_COUNT }, (_, i) => {
