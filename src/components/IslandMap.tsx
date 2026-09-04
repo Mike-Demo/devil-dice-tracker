@@ -126,7 +126,7 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
         ROADS &amp; BUILDINGS
       </text>
       <text x="18" y="35" fontSize={9} fill="#8f7f63">
-        Roads build in order (1 pt each) and unlock nearby buildings.
+        Roads build in order — 1 pt each.
       </text>
 
 
