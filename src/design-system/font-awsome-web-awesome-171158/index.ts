@@ -72,4 +72,4 @@ export { WaTooltip } from "./webawesome/react/tooltip";
 export { WaTree } from "./webawesome/react/tree";
 export { WaTreeItem } from "./webawesome/react/tree-item";
 export { WaZoomableFrame } from "./webawesome/react/zoomable-frame";
-export { WebAwesomeLoader } from "./webawesome/setup";
+export { WebAwesomeLoader, WEB_AWESOME_HTML_CLASSES } from "./webawesome/setup";

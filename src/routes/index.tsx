@@ -32,6 +32,27 @@ export const Route = createFileRoute("/")({
       { property: "og:image", content: LOGO_ABSOLUTE_URL },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:image", content: LOGO_ABSOLUTE_URL },
+      { property: "og:url", content: "https://catan.quest/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://catan.quest/" },
+      { rel: "preload", as: "image", href: LOGO_URL, fetchpriority: "high" },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebApplication",
+          name: "Catan Dice Game Score Sheet",
+          url: "https://catan.quest/",
+          applicationCategory: "GameApplication",
+          operatingSystem: "Any",
+          description:
+            "A digital score sheet for the Catan Dice Game \u2014 track turns, build on the island map, and score without the paper pad.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }),
+      },
     ],
   }),
   component: Home,

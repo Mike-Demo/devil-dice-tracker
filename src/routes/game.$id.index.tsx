@@ -36,6 +36,7 @@ export const Route = createFileRoute("/game/$id/")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: GameScreen,

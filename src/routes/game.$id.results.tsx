@@ -20,6 +20,7 @@ export const Route = createFileRoute("/game/$id/results")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: Results,

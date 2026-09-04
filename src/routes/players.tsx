@@ -28,7 +28,9 @@ export const Route = createFileRoute("/players")({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { property: "og:url", content: "https://catan.quest/players" },
     ],
+    links: [{ rel: "canonical", href: "https://catan.quest/players" }],
   }),
   component: Players,
 });
