@@ -25,7 +25,7 @@ export const Route = createFileRoute("/game/$id/results")({
   component: Results,
 });
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+const RANKS = ["1st", "2nd", "3rd", "4th"];
 
 function Results() {
   const { id } = Route.useParams();
