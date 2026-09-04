@@ -28,14 +28,14 @@ export function TurnLog({ log }: Props) {
 
   return (
     <details className="mt-4 rounded-2xl border-2 border-ink/10 bg-parchment-deep/40 p-4 shadow-sm">
-      <summary className="cursor-pointer text-xs font-extrabold tracking-[0.2em] text-ink-soft uppercase">
+      <summary className="cursor-pointer text-xs font-black tracking-wide text-ink-soft uppercase">
         Turn log ({log.length})
       </summary>
       <ol className="mt-3 flex flex-col gap-2">
         {entries.map((entry, i) => (
           <li
             key={log.length - i}
-            className="flex items-baseline justify-between gap-3 border-b border-ink/8 pb-2 text-sm last:border-0 last:pb-0"
+            className="flex items-baseline justify-between gap-3 border-b border-ink/10 pb-2 text-sm last:border-0 last:pb-0"
           >
             <span className="text-ink">
               <span className="font-bold">
