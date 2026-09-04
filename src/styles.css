@@ -32,11 +32,13 @@
   --font-body: "Nunito Sans", system-ui, sans-serif;
 }
 
-:root {
-  /* Bind Web Awesome brand tokens to the Catan palette */
-  --wa-color-brand-fill-loud: var(--color-catan-red);
-  --wa-color-brand-on-loud: var(--color-parchment);
-  --wa-color-brand-border-loud: var(--color-catan-red-deep);
+@layer wa-theme {
+  :root {
+    /* Bind Web Awesome brand tokens to the Catan palette */
+    --wa-color-brand-fill-loud: var(--color-catan-red);
+    --wa-color-brand-on-loud: var(--color-parchment);
+    --wa-color-brand-border-loud: var(--color-catan-red-deep);
+  }
 }
 
 html {
