@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { listGames, deleteGame } from "@/lib/storage";
 import type { Game } from "@/lib/engine/types";
