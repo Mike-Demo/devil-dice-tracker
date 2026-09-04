@@ -33,18 +33,6 @@ export function useGame(id: string): GameController {
   const pendingRef = useRef<Game | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const loaded = loadGame(id);
-    if (loaded) {
-      setGame(loaded);
-      // Make sure the game exists in the cloud (and has a share code) even if
-      // the player never taps anything this session.
-      scheduleSyncRef.current?.(loaded);
-    } else {
-      setNotFound(true);
-    }
-  }, [id]);
-
   const flush = useCallback(async () => {
     const pending = pendingRef.current;
     pendingRef.current = null;
@@ -69,8 +57,6 @@ export function useGame(id: string): GameController {
     }
   }, []);
 
-  const scheduleSyncRef = useRef<((next: Game) => void) | null>(null);
-
   const scheduleSync = useCallback(
     (next: Game) => {
       pendingRef.current = next;
@@ -83,8 +69,16 @@ export function useGame(id: string): GameController {
   );
 
   useEffect(() => {
-    scheduleSyncRef.current = scheduleSync;
-  }, [scheduleSync]);
+    const loaded = loadGame(id);
+    if (loaded) {
+      setGame(loaded);
+      // Make sure the game exists in the cloud (and has a share code) even if
+      // the player never taps anything this session.
+      scheduleSync(loaded);
+    } else {
+      setNotFound(true);
+    }
+  }, [id, scheduleSync]);
 
   useEffect(
     () => () => {
