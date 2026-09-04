@@ -4,7 +4,7 @@ import { newGame } from "@/lib/engine/engine";
 import type { Island } from "@/lib/engine/types";
 import { saveGame } from "@/lib/storage";
 import { cn } from "@/lib/cn";
-import { WaInput } from "@/design-system/font-awsome-web-awesome-171158";
+import { WaInput, WaButton } from "@/design-system/font-awsome-web-awesome-171158";
 
 export const Route = createFileRoute("/new")({
   head: () => ({
@@ -125,13 +125,15 @@ function NewGame() {
         )}
       </section>
 
-      <button
-        type="button"
+      <WaButton
+        variant="brand"
+        size="large"
+        pill
         onClick={start}
-        className="mt-auto rounded-2xl bg-catan-red px-6 py-4 font-display text-xl font-bold text-parchment shadow-lg transition-transform active:scale-[0.98]"
+        className="mt-auto w-full"
       >
         Start game
-      </button>
+      </WaButton>
     </main>
   );
 }
