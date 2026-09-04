@@ -66,13 +66,13 @@ function NewGame() {
               onClick={() => setIsland(n)}
               aria-pressed={island === n}
               className={cn(
-                "h-auto min-h-0 rounded-xl border-2 p-4 text-left transition-colors",
+                "flex h-auto min-h-0 flex-col items-start rounded-xl border-2 p-4 text-left transition-colors",
                 island === n
                   ? "border-catan-red bg-catan-red/10"
                   : "border-ink/15 bg-parchment-deep/50",
               )}
             >
-              <p className="font-display text-lg font-bold text-ink">
+              <p className="font-display text-lg font-bold whitespace-nowrap text-ink">
                 Island {n === 1 ? "One" : "Two"}
               </p>
               <p className="mt-1 text-xs text-ink-soft">
