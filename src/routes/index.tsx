@@ -29,7 +29,9 @@ export const Route = createFileRoute("/")({
           "Track turns and scores for the Catan Dice Game on your phone or tablet — no paper pad needed.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: LOGO_ABSOLUTE_URL },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:image", content: LOGO_ABSOLUTE_URL },
     ],
   }),
   component: Home,
@@ -49,8 +51,8 @@ function Home() {
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
       <header className="home-header flex flex-col items-center text-center">
         <WaAvatar
-          image={sheepIcon}
-          label="Sheep mascot"
+          image={LOGO_URL}
+          label="Catan resources logo"
           className="sheep-avatar"
         />
         <p className="mb-1 text-xs font-bold tracking-[0.3em] text-catan-red uppercase">
