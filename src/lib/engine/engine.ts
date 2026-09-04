@@ -194,6 +194,16 @@ export function endTurn(game: Game): void {
   sheet.jokersUsed.push(...game.draft.jokers);
   sheet.scores.push(points > 0 ? points : "X");
 
+  game.log ??= [];
+  game.log.push({
+    round: game.round,
+    player: sheet.name,
+    roads: [...game.draft.roads],
+    sites: [...game.draft.sites],
+    jokers: [...game.draft.jokers],
+    score: points > 0 ? points : "X",
+  });
+
   game.draft = emptyDraft();
   recomputeSpecialVictoryPoints(game);
 

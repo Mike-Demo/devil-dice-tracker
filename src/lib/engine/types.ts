@@ -70,6 +70,8 @@ export interface Game {
   winner: number | null;
   createdAt: number;
   updatedAt: number;
+  /** Committed turns, oldest first. Optional for games saved before the log existed. */
+  log?: TurnLogEntry[];
   /** Shareable cloud code, once the game has synced at least once. */
   code?: string;
   /** Roster this game's players came from, if any. */
