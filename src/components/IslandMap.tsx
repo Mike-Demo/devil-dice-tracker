@@ -9,7 +9,6 @@ import {
   SITE_BY_ID,
   TERRAIN_LABEL,
   hexPoints,
-  isHotNumber,
   siteLabel,
   terrainColor,
 } from "@/lib/engine/island";
@@ -30,13 +29,14 @@ interface Props {
   onToggleJoker: (siteId: string) => void;
 }
 
-const clampX = (x: number): number => Math.min(302, Math.max(38, x));
-
 function valueCaption(site: Site, island: Game["island"]): string {
   if (site.kind === "knight") return RESOURCE_LABEL[site.resource ?? "wild"];
   if (island === 2) return site.kind === "city" ? "2 VP" : "1 VP";
   return `${site.points} pts`;
 }
+
+const angleOf = (x1: number, y1: number, x2: number, y2: number): number =>
+  (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
 
 export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: Props) {
   const sheet: PlayerState = game.sheets[game.currentPlayer];
@@ -47,176 +47,137 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
 
   return (
     <svg
-      viewBox="0 0 340 560"
+      viewBox="0 0 340 392"
       className="h-auto w-full select-none"
       role="img"
       aria-label="Island game map"
     >
       <defs>
         <pattern id="gray-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect width="6" height="6" fill="#d8cdb2" />
-          <line x1="0" y1="0" x2="0" y2="6" stroke="#a89a7c" strokeWidth="2" />
+          <rect width="6" height="6" fill="var(--color-map-hatch)" />
+          <line x1="0" y1="0" x2="0" y2="6" stroke="var(--color-map-line)" strokeWidth="2" />
         </pattern>
       </defs>
 
-      {/* island backdrop */}
-      <rect x="4" y="4" width="332" height="384" rx="18" fill="#eadfc6" stroke="#cbbd9c" strokeWidth="2" />
+      {/* zone header */}
+      <text x="16" y="18" fontSize={10} fontWeight="800" letterSpacing="1.4" fill="var(--color-ink-soft)">
+        THE ISLAND — ROADS, BUILDINGS &amp; KNIGHTS
+      </text>
+      <text x="16" y="32" fontSize={9} fill="var(--color-ink-soft)">
+        Roads build in order — 1 pt each.
+      </text>
 
-      {/* terrain hexes — same official layout, printed like the score sheet */}
+      {/* sea */}
+      <rect
+        x="6"
+        y="44"
+        width="328"
+        height="300"
+        rx="14"
+        fill="var(--color-sea)"
+        stroke="var(--color-sea-deep)"
+        strokeWidth="3"
+      />
+
+      {/* terrain hexes */}
       {HEXES.map((hex) => (
         <g key={`h${hex.x}-${hex.y}`} style={{ pointerEvents: "none" }}>
           <polygon
             points={hexPoints(hex.x, hex.y)}
-            fill={terrainColor(hex.terrain)}
-            fillOpacity={0.5}
-            stroke="var(--color-map-line)"
-            strokeWidth={1.5}
+            fill="var(--color-sand)"
+            stroke="var(--color-sand-deep)"
+            strokeWidth={2}
             strokeLinejoin="round"
+          />
+          <polygon
+            points={hexPoints(hex.x, hex.y, 35.5)}
+            fill={terrainColor(hex.terrain)}
+            fillOpacity={hex.terrain === "desert" ? 0.9 : 0.75}
+            stroke="none"
           />
           <text
             x={hex.x}
-            y={hex.y - 20}
+            y={hex.y - 23}
             textAnchor="middle"
             fontSize={7.5}
             fontWeight="700"
             letterSpacing="0.6"
-            fill="var(--color-ink-soft)"
-            opacity={0.75}
+            fill="var(--color-map-token)"
           >
             {TERRAIN_LABEL[hex.terrain].toUpperCase()}
           </text>
-          {hex.number !== null ? (
-            <>
-              <circle
-                cx={hex.x}
-                cy={hex.y}
-                r={12}
-                fill="var(--color-map-token)"
-                stroke="var(--color-map-line)"
-                strokeWidth={1.2}
-                opacity={0.95}
-              />
-              <text
-                x={hex.x}
-                y={hex.y + 4.5}
-                textAnchor="middle"
-                fontSize={13}
-                fontWeight="800"
-                fill={isHotNumber(hex.number) ? "var(--color-catan-red)" : "var(--color-ink)"}
-              >
-                {hex.number}
-              </text>
-            </>
-          ) : (
-            <>
-              {/* robber on the desert */}
-              <ellipse cx={hex.x} cy={hex.y + 10} rx={9} ry={3.5} fill="var(--color-ink)" opacity={0.35} />
-              <path
-                d={`M ${hex.x} ${hex.y - 13} Q ${hex.x + 8} ${hex.y - 12} ${hex.x + 8} ${hex.y - 2} L ${hex.x + 10} ${hex.y + 9} L ${hex.x - 10} ${hex.y + 9} L ${hex.x - 8} ${hex.y - 2} Q ${hex.x - 8} ${hex.y - 12} ${hex.x} ${hex.y - 13} Z`}
-                fill="var(--color-ink)"
-                opacity={0.8}
-              />
-            </>
-          )}
         </g>
       ))}
 
-      {/* zone header: roads & buildings */}
-      <text x="18" y="21" fontSize={10} fontWeight="800" letterSpacing="1.4" fill="#8f7f63">
-        ROADS &amp; BUILDINGS
-      </text>
-      <text x="18" y="35" fontSize={9} fill="#8f7f63">
-        Roads build in order — 1 pt each.
-      </text>
-
-
-
-      {/* roads */}
+      {/* roads sit on the hex edges, like the printed track */}
       {Array.from({ length: ROAD_COUNT }, (_, i) => {
         const [x1, y1] = NODES[i];
         const [x2, y2] = NODES[i + 1];
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2;
+        const rot = angleOf(x1, y1, x2, y2);
         const isBuilt = roads[i];
         const isDraft = draft.roads.includes(i);
         const available = canBuildRoad(sheet, draft, i);
         const isGraySite = game.island === 2 && i === LONGEST_ROAD_INDEX;
         const isStart = i === 0;
+        const fill = isBuilt
+          ? isDraft
+            ? "var(--color-forest)"
+            : isStart
+              ? "var(--color-road-start)"
+              : "var(--color-road)"
+          : isGraySite
+            ? "url(#gray-hatch)"
+            : "var(--color-map-token)";
         return (
-          <g key={`r${i}`}>
-            <line
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              strokeLinecap="round"
-              strokeWidth={isBuilt ? 10 : 8}
-              stroke={
-                isBuilt
-                  ? isStart
-                    ? "#7c4d9e"
-                    : "#7a5230"
-                  : isGraySite
-                    ? "url(#gray-hatch)"
-                    : "#f7f0df"
-              }
-              strokeDasharray={isBuilt ? undefined : "4 5"}
-              className={cn(
-                "transition-colors",
-                available && "cursor-pointer hover:stroke-catan-red/60",
-                isDraft && "stroke-forest",
-              )}
-              onClick={() => onToggleRoad(i)}
-            >
-              <title>
-                {isStart
-                  ? "Starting road (pre-built)"
-                  : isBuilt
-                    ? `Road ${i} — built`
-                    : available
-                      ? `Build road ${i} — 1 pt`
-                      : `Road ${i} — build earlier roads first`}
-              </title>
-            </line>
-            {/* invisible fat tap target */}
-            <line
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="transparent"
-              strokeWidth="24"
-              onClick={() => onToggleRoad(i)}
-              className={available || isDraft ? "cursor-pointer" : undefined}
+          <g
+            key={`r${i}`}
+            transform={`rotate(${rot.toFixed(2)} ${mx} ${my})`}
+            className={cn(available && "cursor-pointer")}
+            onClick={() => onToggleRoad(i)}
+          >
+            <rect
+              x={mx - 17}
+              y={my - 7}
+              width={34}
+              height={14}
+              rx={2.5}
+              fill={fill}
+              stroke={available ? "var(--color-catan-red)" : "var(--color-ink)"}
+              strokeWidth={available ? 2.5 : 1.4}
             />
-            {(available || isDraft) && (
-              <text
-                x={(x1 + x2) / 2}
-                y={(y1 + y2) / 2 - 12}
-                textAnchor="middle"
-                fontSize={8}
-                fontWeight="700"
-                fill={isDraft ? "#2f5d34" : "#b3402a"}
-                style={{ pointerEvents: "none" }}
-              >
-                ROAD 1pt
-              </text>
-            )}
+            <text
+              x={mx}
+              y={my + 4}
+              textAnchor="middle"
+              fontSize={10}
+              fontWeight="800"
+              fill={isBuilt ? "var(--color-map-token)" : "var(--color-ink)"}
+              style={{ pointerEvents: "none" }}
+            >
+              1
+            </text>
+            {/* invisible fat tap target */}
+            <rect
+              x={mx - 22}
+              y={my - 13}
+              width={44}
+              height={26}
+              fill="transparent"
+            />
+            <title>
+              {isStart
+                ? "Starting road (pre-built)"
+                : isBuilt
+                  ? `Road ${i} — built`
+                  : available
+                    ? `Build road ${i} — 1 pt`
+                    : `Road ${i} — build earlier roads first`}
+            </title>
           </g>
         );
       })}
-
-      {/* nodes */}
-      {NODES.map(([x, y], i) => (
-        <circle key={`n${i}`} cx={x} cy={y} r={4} fill="#cbbd9c" />
-      ))}
-
-      {/* knights strip */}
-      <rect x="4" y="398" width="332" height="158" rx="18" fill="#e3d6ba" stroke="#cbbd9c" strokeWidth="2" />
-      <text x="18" y="420" fontSize={10} fontWeight="800" letterSpacing="1.4" fill="#8f7f63">
-        KNIGHTS &amp; RESOURCE JOKERS
-      </text>
-      <text x="18" y="436" fontSize={9} fill="#8f7f63">
-        Build a knight (1 pt), then tap it to spend its resource joker.
-      </text>
 
       {/* build sites */}
       {SITES.map((site) => {
@@ -228,14 +189,21 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
           site.kind === "knight" && canUseJoker(sheet, draft, site);
         const spent = jokersSpent.has(site.id);
         const label = siteLabel(site);
-        const captionX = clampX(site.x);
+        const pieceFill = isBuilt
+          ? isDraft
+            ? "var(--color-forest)"
+            : "var(--color-built)"
+          : "var(--color-map-token)";
+        const pieceStroke = available
+          ? "var(--color-catan-red)"
+          : "var(--color-ink)";
 
         return (
           <g
             key={site.id}
             className={cn(
               "transition-all",
-              (available || isDraft) && "cursor-pointer",
+              (available || isDraft || jokerAvailable) && "cursor-pointer",
             )}
             onClick={() => {
               if (site.kind === "knight" && isBuilt && jokerAvailable) {
@@ -248,123 +216,114 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
             }}
           >
             {/* tap target */}
-            <circle cx={site.x} cy={site.y} r={24} fill="transparent" />
+            <circle cx={site.x} cy={site.y} r={22} fill="transparent" />
 
             {site.kind === "settlement" && (
+              /* paper's arrow-shaped settlement space */
               <path
-                d={`M ${site.x - 13} ${site.y + 9} L ${site.x - 13} ${site.y - 2} L ${site.x} ${site.y - 13} L ${site.x + 13} ${site.y - 2} L ${site.x + 13} ${site.y + 9} Z`}
-                fill={isBuilt ? (isDraft ? "#4a6b3a" : "#2f5d34") : "#f7f0df"}
-                stroke={available ? "#b3402a" : "#a89a7c"}
-                strokeWidth={available ? 2.5 : 1.5}
-                strokeDasharray={isBuilt ? undefined : "4 3"}
+                d={`M ${site.x} ${site.y - 15} L ${site.x + 11} ${site.y - 4} L ${site.x + 7} ${site.y - 4} L ${site.x + 7} ${site.y + 12} L ${site.x - 7} ${site.y + 12} L ${site.x - 7} ${site.y - 4} L ${site.x - 11} ${site.y - 4} Z`}
+                fill={pieceFill}
+                stroke={pieceStroke}
+                strokeWidth={available ? 2.5 : 1.6}
+                strokeLinejoin="round"
               />
             )}
             {site.kind === "city" && (
+              /* paper's stepped city space */
               <path
-                d={`M ${site.x - 15} ${site.y + 10} L ${site.x - 15} ${site.y - 4} L ${site.x - 8} ${site.y - 4} L ${site.x - 8} ${site.y - 12} L ${site.x} ${site.y - 12} L ${site.x} ${site.y - 4} L ${site.x + 8} ${site.y - 4} L ${site.x + 8} ${site.y - 12} L ${site.x + 15} ${site.y - 12} L ${site.x + 15} ${site.y + 10} Z`}
-                fill={isBuilt ? (isDraft ? "#4a6b3a" : "#2f5d34") : "#f7f0df"}
-                stroke={available ? "#b3402a" : "#a89a7c"}
-                strokeWidth={available ? 2.5 : 1.5}
-                strokeDasharray={isBuilt ? undefined : "4 3"}
+                d={`M ${site.x - 13} ${site.y + 12} L ${site.x - 13} ${site.y - 2} L ${site.x - 2} ${site.y - 2} L ${site.x - 2} ${site.y - 8} L ${site.x + 5} ${site.y - 15} L ${site.x + 13} ${site.y - 8} L ${site.x + 13} ${site.y + 12} Z`}
+                fill={pieceFill}
+                stroke={pieceStroke}
+                strokeWidth={available ? 2.5 : 1.6}
+                strokeLinejoin="round"
               />
             )}
             {site.kind === "knight" && (
               <>
-                <path
-                  d={`M ${site.x} ${site.y - 14} L ${site.x + 12} ${site.y - 9} L ${site.x + 12} ${site.y + 2} Q ${site.x + 12} ${site.y + 11} ${site.x} ${site.y + 15} Q ${site.x - 12} ${site.y + 11} ${site.x - 12} ${site.y + 2} L ${site.x - 12} ${site.y - 9} Z`}
-                  fill={
-                    spent
-                      ? "#c8bfa8"
-                      : isBuilt
-                        ? isDraft
-                          ? "#4a6b3a"
-                          : "#2f5d34"
-                        : "#f7f0df"
-                  }
-                  stroke={
-                    jokerAvailable ? "#c9a227" : available ? "#b3402a" : "#a89a7c"
-                  }
-                  strokeWidth={jokerAvailable ? 3 : available ? 2.5 : 1.5}
-                  strokeDasharray={isBuilt ? undefined : "4 3"}
-                />
-                {/* resource pip */}
+                {/* pawn on the hex */}
                 <circle
                   cx={site.x}
-                  cy={site.y + 26}
-                  r={7}
+                  cy={site.y - 17}
+                  r={8}
+                  fill={pieceFill}
+                  stroke={jokerAvailable ? "var(--color-gold)" : pieceStroke}
+                  strokeWidth={jokerAvailable ? 3 : available ? 2.5 : 1.4}
+                />
+                <path
+                  d={`M ${site.x - 7} ${site.y - 2} Q ${site.x - 5} ${site.y - 11} ${site.x} ${site.y - 11} Q ${site.x + 5} ${site.y - 11} ${site.x + 7} ${site.y - 2} Z`}
+                  fill={pieceFill}
+                  stroke={jokerAvailable ? "var(--color-gold)" : pieceStroke}
+                  strokeWidth={jokerAvailable ? 2.5 : 1.4}
+                  strokeLinejoin="round"
+                />
+                {/* resource disc, like the printed number token */}
+                <circle
+                  cx={site.x}
+                  cy={site.y + 12}
+                  r={15}
+                  fill="var(--color-map-token)"
+                  stroke={jokerAvailable ? "var(--color-gold)" : "var(--color-ink)"}
+                  strokeWidth={jokerAvailable ? 3 : 1.4}
+                  opacity={spent ? 0.45 : 1}
+                />
+                <circle
+                  cx={site.x}
+                  cy={site.y + 12}
+                  r={9}
                   fill={
                     site.resource && site.resource !== "wild"
                       ? RESOURCE_COLORS[site.resource]
-                      : "#c9a227"
+                      : "var(--color-gold)"
                   }
-                  stroke="#3b2f23"
-                  strokeWidth={1}
-                  opacity={spent ? 0.35 : 1}
+                  opacity={spent ? 0.3 : 1}
                 />
                 {site.resource === "wild" && (
                   <text
                     x={site.x}
-                    y={site.y + 29.5}
+                    y={site.y + 16}
                     textAnchor="middle"
-                    fontSize={9}
-                    fontWeight="bold"
-                    fill="#3b2f23"
-                    opacity={spent ? 0.35 : 1}
+                    fontSize={12}
+                    fontWeight="800"
+                    fill="var(--color-ink)"
+                    style={{ pointerEvents: "none" }}
                   >
                     ?
                   </text>
                 )}
+                {spent && (
+                  <line
+                    x1={site.x - 13}
+                    y1={site.y - 1}
+                    x2={site.x + 13}
+                    y2={site.y + 25}
+                    stroke="var(--color-catan-red-deep)"
+                    strokeWidth={3}
+                    style={{ pointerEvents: "none" }}
+                  />
+                )}
               </>
             )}
 
-            {/* point / order label inside the icon */}
+            {/* number printed on the space */}
             <text
               x={site.x}
-              y={site.y + (site.kind === "knight" ? 3 : 4)}
+              y={site.kind === "knight" ? site.y - 14 : site.y + 8}
               textAnchor="middle"
-              fontSize={site.kind === "knight" ? 11 : 12}
+              fontSize={site.kind === "knight" ? 9 : 11}
               fontWeight="800"
-              fill={isBuilt ? "#f7f0df" : "#6b5d4b"}
+              fill={
+                site.kind === "knight"
+                  ? isBuilt
+                    ? "var(--color-map-token)"
+                    : "var(--color-ink)"
+                  : isBuilt
+                    ? "var(--color-map-token)"
+                    : "var(--color-ink)"
+              }
               style={{ pointerEvents: "none" }}
             >
               {site.kind === "knight" ? site.order : site.points}
             </text>
-
-            {/* caption: what this piece is and what it is worth */}
-            <text
-              x={captionX}
-              y={site.y + (site.kind === "knight" ? 44 : 22)}
-              textAnchor="middle"
-              fontSize={8.5}
-              fontWeight="700"
-              fill="#6b5d4b"
-              style={{ pointerEvents: "none" }}
-            >
-              {site.kind === "knight" ? `Knight ${site.order}` : label}
-            </text>
-            <text
-              x={captionX}
-              y={site.y + (site.kind === "knight" ? 54 : 31)}
-              textAnchor="middle"
-              fontSize={8}
-              fill="#8f7f63"
-              style={{ pointerEvents: "none" }}
-            >
-              {valueCaption(site, game.island)}
-            </text>
-
-            {/* spent joker cross-out */}
-            {site.kind === "knight" && spent && (
-              <line
-                x1={site.x - 14}
-                y1={site.y - 14}
-                x2={site.x + 14}
-                y2={site.y + 14}
-                stroke="#8f3120"
-                strokeWidth={3}
-                style={{ pointerEvents: "none" }}
-              />
-            )}
 
             <title>
               {site.kind === "knight"
@@ -384,6 +343,13 @@ export function IslandMap({ game, onToggleRoad, onToggleSite, onToggleJoker }: P
           </g>
         );
       })}
+
+      <text x="16" y="364" fontSize={9} fill="var(--color-ink-soft)">
+        Pawns on the tiles are knights — 1 pt, then tap to spend the joker.
+      </text>
+      <text x="16" y="378" fontSize={9} fill="var(--color-ink-soft)">
+        Arrows = settlements, stepped spaces = cities; number = points.
+      </text>
     </svg>
   );
 }

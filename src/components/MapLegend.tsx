@@ -15,8 +15,15 @@ export function MapLegend({ island }: Props) {
           <polygon points="5,0 15,0 20,9 15,18 5,18 0,9" fill="currentColor" fillOpacity={0.6} />
         </svg>
       ),
-      text: "Hex tiles show terrain & dice numbers",
+      text: "Hex tiles are the island's terrain",
     },
+    {
+      swatch: (
+        <span className="block h-3 w-4 rounded-xs border border-ink bg-map-token" />
+      ),
+      text: "Small “1” spaces on the hex edges are roads",
+    },
+
 
     {
       swatch: (
@@ -37,7 +44,7 @@ export function MapLegend({ island }: Props) {
     },
     {
       swatch: (
-        <span className="relative block h-4 w-4 rounded bg-[#c8bfa8]">
+        <span className="relative block h-4 w-4 rounded bg-map-hatch">
           <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-catan-red">
             ✕
           </span>
@@ -50,7 +57,7 @@ export function MapLegend({ island }: Props) {
   if (island === 2) {
     items.push({
       swatch: (
-        <span className="block h-4 w-4 rounded border border-ink/20 bg-[repeating-linear-gradient(45deg,#d8cdb2_0_2px,#a89a7c_2px_4px)]" />
+        <span className="block h-4 w-4 rounded border border-ink/20 bg-[repeating-linear-gradient(45deg,var(--color-map-hatch)_0_2px,var(--color-map-line)_2px_4px)]" />
       ),
       text: "Hatched road = Longest Road space",
     });

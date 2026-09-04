@@ -20,6 +20,12 @@
   --color-desert: #d9c89a;
   --color-map-line: #a89a7c;
   --color-map-token: #f7f0df;
+  --color-sea: #35a4dc;
+  --color-sea-deep: #1f6fa0;
+  --color-sand: #e6d3a3;
+  --color-sand-deep: #c9ac74;
+  --color-road-start: #7c4d9e;
+  --color-map-hatch: #d8cdb2;
 
 
   --font-display: "Fraunces", Georgia, serif;
