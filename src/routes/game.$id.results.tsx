@@ -84,7 +84,7 @@ function Results() {
               )}
             >
               <span className="font-display text-2xl font-black text-ink-soft">
-                {MEDALS[rank] ?? `${rank + 1}.`}
+                {RANKS[rank] ?? `${rank + 1}th`}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-bold text-ink">{sheet.name}</p>
