@@ -41,7 +41,7 @@ function Home() {
         <WaAvatar
           image={sheepIcon}
           label="Sheep mascot"
-          className="mb-3 text-5xl"
+          className="sheep-avatar"
         />
         <p className="mb-1 text-xs font-bold tracking-[0.3em] text-catan-red uppercase">
           Roll · Play · Settle

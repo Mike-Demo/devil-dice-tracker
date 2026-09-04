@@ -55,3 +55,9 @@ button:not(wa-button) {
   height: auto;
   min-height: 0;
 }
+
+/* Home header sheep — wa-avatar scales from font-size via Web Awesome tokens */
+.sheep-avatar {
+  font-size: var(--wa-font-size-4xl);
+  margin-block-end: var(--wa-space-m);
+}
