@@ -1,0 +1,228 @@
+{
+  "boltSlidesVersion": 1,
+  "boltSlidesId": "11011050-f9d6-4d43-8a9e-3e43af51bbaf",
+  "deck": {
+    "title": "Devil Dice Tracker",
+    "transition": "fade",
+    "font": "outfit",
+    "accent": "#ff6a2b"
+  },
+  "slides": [
+    {
+      "id": "s1",
+      "position": 0,
+      "layout": "cover",
+      "props": {
+        "kicker": "A tabletop dice tracker with a devilish sense of humour",
+        "title": "Devil Dice Tracker — your rolls, recorded. Your luck, ==judged==.",
+        "subtitle": "Every roll logged. Every streak remembered. Every excuse on the record.",
+        "foot": "github.com/Mike-Demo/devil-dice-tracker"
+      },
+      "background": {
+        "type": "gradient",
+        "from": "#06080d",
+        "to": "#1a0a04",
+        "angle": 160
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "Set the tone: this is a game-night tool that talks back. One line on the premise, then move.",
+      "status": "none"
+    },
+    {
+      "id": "s2",
+      "position": 1,
+      "layout": "contrast",
+      "props": {
+        "kicker": "The problem",
+        "title": "Cursed dice. Blessed dice. ==Zero evidence==.",
+        "left": {
+          "label": "Table legend",
+          "title": "What every group swears",
+          "points": [
+            "The dice are cursed — or blessed, or out to get Dave personally",
+            "Streaks and slumps become folklore after every session",
+            "Nobody logs a session's rolls, so nobody can prove a thing"
+          ]
+        },
+        "right": {
+          "label": "The reality",
+          "title": "What anyone actually measured",
+          "points": [
+            "Not a single roll on record",
+            "Not one verified hot streak in the group's history",
+            "The d20's alleged vendetta remains entirely anecdotal"
+          ]
+        }
+      },
+      "background": {
+        "type": "color",
+        "color": "var(--bg)"
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "Every table has these arguments. The gap isn't opinion — it's that nobody keeps data.",
+      "status": "none"
+    },
+    {
+      "id": "s3",
+      "position": 2,
+      "layout": "pillars",
+      "props": {
+        "title": "A fast roll logger that keeps the ==session's story==.",
+        "items": [
+          {
+            "title": "Tap to log",
+            "body": "Tap in each roll mid-game — fast enough that logging never interrupts the night."
+          },
+          {
+            "title": "The session's story",
+            "body": "Totals, averages, crits and fumbles, kept roll by roll until the table's settled it."
+          },
+          {
+            "title": "Who's really hot",
+            "body": "Per-player stats settle the oldest argument in gaming: who's actually rolling well."
+          }
+        ],
+        "large": true
+      },
+      "background": {
+        "type": "color",
+        "color": "var(--bg)"
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "Three pillars: capture fast, keep the whole story, and name who's hot with data.",
+      "status": "none"
+    },
+    {
+      "id": "s4",
+      "position": 3,
+      "layout": "steps",
+      "props": {
+        "kicker": "How it works",
+        "title": "Built for ==zero friction== mid-game.",
+        "items": [
+          {
+            "title": "Pick the die",
+            "body": "d4 through d20, one tap. No forms, no setup, no leaving the table."
+          },
+          {
+            "title": "Log the roll",
+            "body": "Tap the number you rolled. Two seconds, and you're back in the game."
+          },
+          {
+            "title": "Done — stats write themselves",
+            "body": "Totals, averages and streaks build as you play. The teasing writes itself afterwards."
+          }
+        ]
+      },
+      "background": {
+        "type": "color",
+        "color": "var(--bg)"
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "The whole pitch is speed: if logging takes effort mid-game, nobody does it. This takes seconds.",
+      "status": "none"
+    },
+    {
+      "id": "s5",
+      "position": 4,
+      "layout": "chat",
+      "props": {
+        "kicker": "The devil in the details",
+        "title": "The Tracker ==keeps receipts==.",
+        "name": "Table talk",
+        "messages": [
+          { "from": "user", "text": "The d20 hates me. It's personal at this point." },
+          { "from": "ai", "text": "Receipts: 14 rolls this session, 3 natural 20s, average 13.1. The d20 is fine." },
+          { "from": "user", "text": "Okay, but what about the fumbles?" },
+          { "from": "ai", "text": "2 fumbles, 1 crit. I run a playful infernal ledger — and the devil never forgets a claim." }
+        ]
+      },
+      "background": {
+        "type": "gradient",
+        "from": "#06080d",
+        "to": "#1a0a04",
+        "angle": 160
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "The theme is the feature: a running verdict on your luck, delivered with a devil's sense of humour.",
+      "status": "none"
+    },
+    {
+      "id": "s6",
+      "position": 5,
+      "layout": "bento",
+      "props": {
+        "kicker": "Key features",
+        "title": "Everything a game night needs.",
+        "tiles": [
+          { "k": "d4 – d20", "title": "Every die", "body": "Log any polyhedral roll with one tap.", "c": 2, "variant": "accent" },
+          { "k": "Streaks", "title": "Hot-streak watch", "body": "Per-player stats expose who's really rolling well.", "c": 2 },
+          { "k": "Crits & fumbles", "title": "Highlight reel", "body": "Natural 20s and nat 1s get their moment.", "c": 2 },
+          { "k": "Verdicts", "title": "The devil's judgement", "body": "A running, teasing read on your luck.", "c": 3, "variant": "glow" },
+          { "k": "History", "title": "Session ledger", "body": "Every session's full story, kept on record.", "c": 3 }
+        ]
+      },
+      "background": {
+        "type": "color",
+        "color": "var(--bg)"
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "Run through the tiles quickly. Land on the devil's judgement — that's the memorable one.",
+      "status": "none"
+    },
+    {
+      "id": "s7",
+      "position": 6,
+      "layout": "bigNumber",
+      "props": {
+        "kicker": "Status",
+        "value": "100%",
+        "caption": "open source — a working tracker, free to use, fork and improve",
+        "foot": "github.com/Mike-Demo/devil-dice-tracker"
+      },
+      "background": {
+        "type": "color",
+        "color": "var(--bg)"
+      },
+      "animation": "cascade",
+      "transition": null,
+      "nav": null,
+      "notes": "It works today, and the whole thing is on GitHub. Contributions and feature ideas welcome.",
+      "status": "none"
+    },
+    {
+      "id": "s8",
+      "position": 7,
+      "layout": "cover",
+      "props": {
+        "kicker": "Ready to settle it at the table?",
+        "title": "Make a deal with the ==devil==.",
+        "subtitle": "github.com/Mike-Demo/devil-dice-tracker",
+        "foot": "Free · Open source · Bring your own dice"
+      },
+      "background": {
+        "type": "gradient",
+        "from": "#1a0a04",
+        "to": "#06080d",
+        "angle": 200
+      },
+      "animation": "cascade",
+      "transition": "zoom",
+      "nav": null,
+      "notes": "Close with the repo link on screen. One line: log the rolls, let the devil judge.",
+      "status": "none"
+    }
+  ]
+}
