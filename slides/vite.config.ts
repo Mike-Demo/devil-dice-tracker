@@ -40,6 +40,21 @@ function deckFilePlugin(): Plugin {
           return;
         }
 
+        /* Same-origin guard: the default Vite dev CORS policy would let any
+           website POST here and rewrite the developer's deck.json. */
+        const origin = req.headers.origin;
+        const host = req.headers.host;
+
+        if (
+          origin &&
+          host &&
+          origin !== `http://${host}` &&
+          origin !== `https://${host}`
+        ) {
+          sendJson(res, 403, { error: 'cross-origin-forbidden' });
+          return;
+        }
+
         if (req.method === 'GET') {
           try {
             sendJson(res, 200, JSON.parse(await readFile(filePath, 'utf8')));
