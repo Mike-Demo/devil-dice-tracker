@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PlayersRouteImport } from './routes/players'
-import { Route as NewRouteImport } from './routes/new'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as GameIdRouteImport } from './routes/game.$id'
+import { Route as NewRouteImport } from './routes/new'
+import { Route as PlayersRouteImport } from './routes/players'
 import { Route as GCodeRouteImport } from './routes/g.$code'
+import { Route as GameIdRouteImport } from './routes/game.$id'
+import { Route as Char91__componentChar93PreviewSplatRouteImport } from './routes/[__component].preview.$'
+import { Route as Char91__mockupChar93PreviewSplatRouteImport } from './routes/[__mockup].preview.$'
 import { Route as GameIdIndexRouteImport } from './routes/game.$id.index'
 import { Route as GameIdResultsRouteImport } from './routes/game.$id.results'
-import { Route as Char91__mockupChar93PreviewSplatRouteImport } from './routes/[__mockup].preview.$'
-import { Route as Char91__componentChar93PreviewSplatRouteImport } from './routes/[__component].preview.$'
 
-const PlayersRoute = PlayersRouteImport.update({
-  id: '/players',
-  path: '/players',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewRoute = NewRouteImport.update({
@@ -29,14 +29,9 @@ const NewRoute = NewRouteImport.update({
   path: '/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GameIdRoute = GameIdRouteImport.update({
-  id: '/game/$id',
-  path: '/game/$id',
+const PlayersRoute = PlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GCodeRoute = GCodeRouteImport.update({
@@ -44,6 +39,23 @@ const GCodeRoute = GCodeRouteImport.update({
   path: '/g/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GameIdRoute = GameIdRouteImport.update({
+  id: '/game/$id',
+  path: '/game/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91__componentChar93PreviewSplatRoute =
+  Char91__componentChar93PreviewSplatRouteImport.update({
+    id: '/__component/preview/$',
+    path: '/__component/preview/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91__mockupChar93PreviewSplatRoute =
+  Char91__mockupChar93PreviewSplatRouteImport.update({
+    id: '/__mockup/preview/$',
+    path: '/__mockup/preview/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const GameIdIndexRoute = GameIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -54,18 +66,6 @@ const GameIdResultsRoute = GameIdResultsRouteImport.update({
   path: '/results',
   getParentRoute: () => GameIdRoute,
 } as any)
-const Char91__mockupChar93PreviewSplatRoute =
-  Char91__mockupChar93PreviewSplatRouteImport.update({
-    id: '/__mockup/preview/$',
-    path: '/__mockup/preview/$',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91__componentChar93PreviewSplatRoute =
-  Char91__componentChar93PreviewSplatRouteImport.update({
-    id: '/__component/preview/$',
-    path: '/__component/preview/$',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -147,11 +147,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/players': {
-      id: '/players'
-      path: '/players'
-      fullPath: '/players'
-      preLoaderRoute: typeof PlayersRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/new': {
@@ -161,11 +161,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/players': {
+      id: '/players'
+      path: '/players'
+      fullPath: '/players'
+      preLoaderRoute: typeof PlayersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/g/$code': {
+      id: '/g/$code'
+      path: '/g/$code'
+      fullPath: '/g/$code'
+      preLoaderRoute: typeof GCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/game/$id': {
@@ -175,11 +182,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GameIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/g/$code': {
-      id: '/g/$code'
-      path: '/g/$code'
-      fullPath: '/g/$code'
-      preLoaderRoute: typeof GCodeRouteImport
+    '/__component/preview/$': {
+      id: '/__component/preview/$'
+      path: '/__component/preview/$'
+      fullPath: '/__component/preview/$'
+      preLoaderRoute: typeof Char91__componentChar93PreviewSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__mockup/preview/$': {
+      id: '/__mockup/preview/$'
+      path: '/__mockup/preview/$'
+      fullPath: '/__mockup/preview/$'
+      preLoaderRoute: typeof Char91__mockupChar93PreviewSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/game/$id/': {
@@ -195,20 +209,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/game/$id/results'
       preLoaderRoute: typeof GameIdResultsRouteImport
       parentRoute: typeof GameIdRoute
-    }
-    '/__mockup/preview/$': {
-      id: '/__mockup/preview/$'
-      path: '/__mockup/preview/$'
-      fullPath: '/__mockup/preview/$'
-      preLoaderRoute: typeof Char91__mockupChar93PreviewSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/__component/preview/$': {
-      id: '/__component/preview/$'
-      path: '/__component/preview/$'
-      fullPath: '/__component/preview/$'
-      preLoaderRoute: typeof Char91__componentChar93PreviewSplatRouteImport
-      parentRoute: typeof rootRouteImport
     }
   }
 }
