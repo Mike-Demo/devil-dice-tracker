@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Game } from "./engine/types";
 import type { Json } from "@/integrations/supabase/types";
 import { aggregateProfiles, type PlayerProfile } from "./profileStats";
+import { roadCount, standings, totalScore, victoryPoints } from "./engine/engine";
 
 
 /** Crockford-style base32 alphabet without ambiguous characters. */
@@ -23,26 +24,49 @@ const codeSchema = z
   .toUpperCase()
   .regex(/^[A-Z0-9]{6}$/, "Codes are 6 letters and numbers");
 
+/** Private random secret proving the caller created a game or roster. */
+const keySchema = z.string().regex(/^[A-Za-z0-9_-]{32,64}$/);
+
+function generateKey(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+/**
+ * Checks a caller's key against a row's stored key. Rows created before
+ * keys existed (null) are claimed by the first caller that presents a key.
+ */
+async function checkKey(
+  table: "games" | "rosters",
+  id: string,
+  stored: string | null,
+  key: string | undefined,
+): Promise<boolean> {
+  if (!key) return false;
+  if (stored) return stored === key;
+  const db = await admin();
+  const { data } = await db
+    .from(table)
+    .update({ edit_key: key })
+    .eq("id", id)
+    .is("edit_key", null)
+    .select("id");
+  return (data ?? []).length > 0;
+}
+
 const stateSchema = z.object({
   code: codeSchema.optional(),
+  editKey: keySchema.optional(),
   rosterCode: codeSchema.optional(),
+  rosterKey: keySchema.optional(),
   state: z.record(z.unknown()),
 });
 
-const resultsSchema = z.object({
-  code: codeSchema,
-  results: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1).max(40),
-        points: z.number().int(),
-        longestRoad: z.number().int().min(0),
-        won: z.boolean(),
-      }),
-    )
-    .min(1)
-    .max(4),
-});
+const resultsSchema = z.object({ code: codeSchema });
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -56,15 +80,45 @@ async function rosterIdForCode(code: string | undefined): Promise<string | null>
   return data?.id ?? null;
 }
 
+/** Roster id only when the caller holds that roster's key. */
+async function ownedRosterId(
+  code: string | undefined,
+  key: string | undefined,
+): Promise<string | null> {
+  if (!code || !key) return null;
+  const db = await admin();
+  const { data } = await db
+    .from("rosters")
+    .select("id, edit_key")
+    .eq("code", code)
+    .maybeSingle();
+  if (!data) return null;
+  return (await checkKey("rosters", data.id, data.edit_key, key)) ? data.id : null;
+}
+
 /** Create or update the cloud copy of a game. Returns its share code. */
 export const upsertGame = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => stateSchema.parse(input))
   .handler(async ({ data }) => {
     const db = await admin();
+    // Never persist private keys inside the shareable state.
+    const { editKey: _e, rosterKey: _r, ...cleanState } = data.state;
+    data.state = cleanState;
     const game = data.state as unknown as Game;
-    const rosterId = await rosterIdForCode(data.rosterCode);
+    const rosterId = await ownedRosterId(data.rosterCode, data.rosterKey);
 
     if (data.code) {
+      const { data: existing } = await db
+        .from("games")
+        .select("id, edit_key")
+        .eq("code", data.code)
+        .maybeSingle();
+      if (
+        !existing ||
+        !(await checkKey("games", existing.id, existing.edit_key, data.editKey))
+      ) {
+        throw new Error("Not allowed to edit this game");
+      }
       const { error } = await db
         .from("games")
         .update({
@@ -74,21 +128,23 @@ export const upsertGame = createServerFn({ method: "POST" })
           roster_id: rosterId,
           updated_at: new Date().toISOString(),
         })
-        .eq("code", data.code);
-      if (error) throw new Error(error.message);
-      return { code: data.code };
+        .eq("id", existing.id);
+      if (error) throw new Error("Could not save game");
+      return { code: data.code, editKey: data.editKey };
     }
 
+    const editKey = generateKey();
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const code = generateCode();
       const { error } = await db.from("games").insert({
         code,
+        edit_key: editKey,
         state: data.state as Json,
         status: game.status,
         island: game.island,
         roster_id: rosterId,
       });
-      if (!error) return { code };
+      if (!error) return { code, editKey };
       if (error.code !== "23505") throw new Error(error.message);
     }
     throw new Error("Could not allocate a game code");
@@ -120,17 +176,42 @@ export const recordResults = createServerFn({ method: "POST" })
     const db = await admin();
     const { data: game } = await db
       .from("games")
-      .select("id, roster_id, island")
+      .select("id, roster_id, island, state, status")
       .eq("code", data.code)
       .maybeSingle();
-    if (!game) return { recorded: false };
+    if (!game || game.status !== "finished") return { recorded: false };
+
+    // Standings come from the saved game itself, never from the caller.
+    const saved = game.state as unknown as Game;
+    if (!Array.isArray(saved?.sheets) || saved.status !== "finished") {
+      return { recorded: false };
+    }
+    const order = standings(saved);
+    const best = order[0]?.value ?? 0;
+    const results = saved.sheets.flatMap((sheet, index) =>
+      sheet.isAI
+        ? []
+        : [
+            {
+              name: String(sheet.name).trim().slice(0, 40) || `Player ${index + 1}`,
+              points:
+                saved.island === 1 ? totalScore(sheet) : victoryPoints(saved, index),
+              longestRoad: roadCount(saved, index),
+              won:
+                saved.winner !== null
+                  ? saved.winner === index
+                  : (order.find((e) => e.index === index)?.value ?? 0) === best,
+            },
+          ],
+    );
+    if (results.length === 0) return { recorded: false };
 
     let playersByName = new Map<string, string>();
     const rosterId = game.roster_id;
     if (rosterId) {
       // Make sure everyone who played exists on the roster.
       await db.from("players").upsert(
-        data.results.map((r) => ({ roster_id: rosterId, name: r.name })),
+        results.map((r) => ({ roster_id: rosterId, name: r.name })),
         { onConflict: "roster_id,name" },
       );
       const { data: players } = await db
@@ -141,7 +222,7 @@ export const recordResults = createServerFn({ method: "POST" })
     }
 
 
-    const rows = data.results.map((r) => ({
+    const rows = results.map((r) => ({
       game_id: game.id,
       player_id: playersByName.get(r.name) ?? null,
       name: r.name,
@@ -161,10 +242,11 @@ export const recordResults = createServerFn({ method: "POST" })
 /** Create a new empty roster and return its code. */
 export const createRoster = createServerFn({ method: "POST" }).handler(async () => {
   const db = await admin();
+  const editKey = generateKey();
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const code = generateCode();
-    const { error } = await db.from("rosters").insert({ code });
-    if (!error) return { code };
+    const { error } = await db.from("rosters").insert({ code, edit_key: editKey });
+    if (!error) return { code, editKey };
     if (error.code !== "23505") throw new Error(error.message);
   }
   throw new Error("Could not allocate a roster code");
@@ -174,13 +256,17 @@ export const createRoster = createServerFn({ method: "POST" }).handler(async () 
 export const addRosterPlayer = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
-      .object({ rosterCode: codeSchema, name: z.string().trim().min(1).max(40) })
+      .object({
+        rosterCode: codeSchema,
+        rosterKey: keySchema,
+        name: z.string().trim().min(1).max(40),
+      })
       .parse(input),
   )
   .handler(async ({ data }) => {
     const db = await admin();
-    const rosterId = await rosterIdForCode(data.rosterCode);
-    if (!rosterId) throw new Error("Roster not found");
+    const rosterId = await ownedRosterId(data.rosterCode, data.rosterKey);
+    if (!rosterId) throw new Error("Not allowed to edit this roster");
     const { error } = await db
       .from("players")
       .upsert({ roster_id: rosterId, name: data.name }, { onConflict: "roster_id,name" });
@@ -190,11 +276,17 @@ export const addRosterPlayer = createServerFn({ method: "POST" })
 
 export const removeRosterPlayer = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
-    z.object({ rosterCode: codeSchema, name: z.string().trim().min(1) }).parse(input),
+    z
+      .object({
+        rosterCode: codeSchema,
+        rosterKey: keySchema,
+        name: z.string().trim().min(1).max(40),
+      })
+      .parse(input),
   )
   .handler(async ({ data }) => {
     const db = await admin();
-    const rosterId = await rosterIdForCode(data.rosterCode);
+    const rosterId = await ownedRosterId(data.rosterCode, data.rosterKey);
     if (!rosterId) return { ok: false };
     await db.from("players").delete().eq("roster_id", rosterId).eq("name", data.name);
     return { ok: true };

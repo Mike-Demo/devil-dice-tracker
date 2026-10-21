@@ -7,7 +7,13 @@ import {
   removeRosterPlayer,
 } from "@/lib/cloud.functions";
 import type { PlayerProfile } from "@/lib/profileStats";
-import { getRosterCode, normalizeCode, setRosterCode } from "@/lib/roster";
+import {
+  getRosterCode,
+  getRosterKey,
+  normalizeCode,
+  setRosterCode,
+  setRosterKey,
+} from "@/lib/roster";
 import { cn } from "@/lib/cn";
 import { WaButton, WaInput } from "@/design-system/font-awsome-web-awesome-171158";
 
@@ -61,6 +67,7 @@ function Players() {
     try {
       const result = await createRoster({ data: undefined });
       setRosterCode(result.code);
+      setRosterKey(result.editKey);
       setCode(result.code);
       setProfiles([]);
     } catch {
@@ -83,6 +90,7 @@ function Players() {
         setError("No roster found for that code.");
         return;
       }
+      if (clean !== getRosterCode()) setRosterKey(null);
       setRosterCode(clean);
       setCode(clean);
       setProfiles(stats);
@@ -99,7 +107,12 @@ function Players() {
     if (!code || !name) return;
     setBusy(true);
     try {
-      await addRosterPlayer({ data: { rosterCode: code, name } });
+      const rosterKey = getRosterKey();
+      if (!rosterKey) {
+        setError("Only the device that created this roster can change it.");
+        return;
+      }
+      await addRosterPlayer({ data: { rosterCode: code, rosterKey, name } });
       setNewName("");
       await refresh(code);
     } catch {
@@ -110,8 +123,13 @@ function Players() {
   };
 
   const remove = async (name: string) => {
+    const rosterKey = getRosterKey();
     if (!code) return;
-    await removeRosterPlayer({ data: { rosterCode: code, name } });
+    if (!rosterKey) {
+      setError("Only the device that created this roster can change it.");
+      return;
+    }
+    await removeRosterPlayer({ data: { rosterCode: code, rosterKey, name } });
     await refresh(code);
   };
 

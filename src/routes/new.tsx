@@ -4,7 +4,7 @@ import { newGame } from "@/lib/engine/engine";
 import type { Island } from "@/lib/engine/types";
 import { saveGame } from "@/lib/storage";
 import { getRosterStats } from "@/lib/cloud.functions";
-import { getRosterCode } from "@/lib/roster";
+import { getRosterCode, getRosterKey } from "@/lib/roster";
 import { cn } from "@/lib/cn";
 import { WaInput, WaButton } from "@/design-system/font-awsome-web-awesome-171158";
 import { CaptchaGate, type CaptchaState } from "@/components/CaptchaGate";
@@ -112,7 +112,11 @@ function NewGame() {
           : n.trim() || `Player ${i + 1}`,
       );
       const game = newGame(island, cleaned, aiFlags);
-      if (rosterCode) game.rosterCode = rosterCode;
+      if (rosterCode) {
+        game.rosterCode = rosterCode;
+        const rosterKey = getRosterKey();
+        if (rosterKey) game.rosterKey = rosterKey;
+      }
       saveGame(game);
       router.navigate({ to: "/game/$id", params: { id: game.id } });
     } catch {

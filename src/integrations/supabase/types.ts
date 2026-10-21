@@ -69,6 +69,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          edit_key: string | null
           id: string
           island: number
           roster_id: string | null
@@ -79,6 +80,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          edit_key?: string | null
           id?: string
           island: number
           roster_id?: string | null
@@ -89,6 +91,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          edit_key?: string | null
           id?: string
           island?: number
           roster_id?: string | null
@@ -139,16 +142,19 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          edit_key: string | null
           id: string
         }
         Insert: {
           code: string
           created_at?: string
+          edit_key?: string | null
           id?: string
         }
         Update: {
           code?: string
           created_at?: string
+          edit_key?: string | null
           id?: string
         }
         Relationships: []
