@@ -39,17 +39,19 @@ export function useGame(id: string): GameController {
     if (!pending) return;
     setSyncStatus("saving");
     try {
-      const code = await pushGame(pending);
+      const pushed = await pushGame(pending);
+      const code = pushed?.code;
+      const editKey = pushed?.editKey ?? pending.editKey;
       if (code && !pending.code) {
         setGame((prev) => {
           if (!prev || prev.id !== pending.id) return prev;
-          const next: Game = { ...prev, code };
+          const next: Game = { ...prev, code, ...(editKey ? { editKey } : {}) };
           saveGame(next);
           return next;
         });
       }
       if (pending.status === "finished") {
-        await pushResults({ ...pending, code: code ?? pending.code });
+        await pushResults({ ...pending, code: code ?? pending.code, editKey });
       }
       setSyncStatus("saved");
     } catch {
