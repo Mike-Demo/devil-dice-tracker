@@ -80,5 +80,9 @@ export interface Game {
   code?: string;
   /** Roster this game's players came from, if any. */
   rosterCode?: string;
+  /** Private key proving this device created the cloud copy (never shared). */
+  editKey?: string;
+  /** Private key for the roster, when this device owns it. */
+  rosterKey?: string;
 }
 
